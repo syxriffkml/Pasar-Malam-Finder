@@ -14,6 +14,12 @@
 	let statMarkets = $state(0);
 	let statTonight = $state(0);
 
+	// Map
+	let mapEl: HTMLDivElement;
+	let LeafletLib: any = $state(null);
+	let leafletMap: any = $state(null);
+	let markersLayer: any = $state(null);
+
 	const selectedEnglish = $derived(fromMalayDay(selectedDay));
 
 	const filteredMarkets = $derived(
@@ -35,7 +41,77 @@
 		return n === 0 ? '#f5c518' : n === 1 ? '#e0d8c8' : '#e5311d';
 	}
 
+	$effect(() => {
+		if (!LeafletLib || !markersLayer || !leafletMap) return;
+		const L = LeafletLib;
+
+		markersLayer.clearLayers();
+
+		const valid = filteredMarkets.filter((m) => m.lat && m.lng);
+		valid.forEach((market) => {
+			const icon = L.divIcon({
+				className: '',
+				html: `<div style="position:relative;width:18px;height:18px;">
+					<div style="position:absolute;top:0;left:0;width:18px;height:18px;border-radius:50%;border:2px solid #e5311d;animation:pin-pulse 2.2s ease-out infinite;"></div>
+					<div style="position:absolute;top:0;left:0;width:18px;height:18px;border-radius:50%;border:2px solid #e5311d;animation:pin-pulse 2.2s ease-out 1.1s infinite;"></div>
+					<div style="width:18px;height:18px;background:#e5311d;border-radius:50%;border:3px solid white;box-shadow:0 4px 10px rgba(229,49,29,0.4);position:relative;z-index:1;"></div>
+				</div>`,
+				iconSize: [18, 18],
+				iconAnchor: [9, 9],
+				popupAnchor: [0, -12]
+			});
+
+			L.marker([market.lat, market.lng], { icon })
+				.addTo(markersLayer)
+				.bindPopup(
+					`<div style="font-family:'Sora',sans-serif;min-width:160px;">
+						<div style="font-family:'Anton',sans-serif;font-size:16px;text-transform:uppercase;color:#1a1209;">${market.name}</div>
+						<div style="font-size:12px;color:#8a7d65;margin-top:4px;">${market.area}</div>
+						<a href="/market/${market.id}" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:#e5311d;text-decoration:none;">View details →</a>
+					</div>`,
+					{ maxWidth: 220 }
+				);
+		});
+
+		if (valid.length > 0) {
+			const bounds = L.latLngBounds(valid.map((m) => [m.lat, m.lng]));
+			leafletMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 13, animate: true });
+		}
+	});
+
 	onMount(() => {
+		// Leaflet — async IIFE so onMount stays synchronous (required for cleanup return)
+		(async () => {
+			const leafletModule = await import('leaflet');
+			await import('leaflet/dist/leaflet.css');
+			const L = leafletModule.default ?? (leafletModule as unknown as typeof import('leaflet'));
+
+			if (!mapEl) return;
+
+			const map = L.map(mapEl, {
+				center: [3.14, 101.69],
+				zoom: 11,
+				zoomControl: false,
+				scrollWheelZoom: false,
+				attributionControl: false
+			});
+
+			L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+				maxZoom: 19
+			}).addTo(map);
+
+			L.control.zoom({ position: 'topright' }).addTo(map);
+
+			const layer = L.layerGroup().addTo(map);
+
+			// Assign to $state vars so $effect can react
+			LeafletLib = L;
+			markersLayer = layer;
+			leafletMap = map;
+
+			setTimeout(() => map.invalidateSize(), 100);
+		})();
+
 		gsap.registerPlugin(ScrollTrigger);
 
 		gsap.from('.hero-word', {
@@ -93,7 +169,10 @@
 			}
 		});
 
-		return () => ScrollTrigger.getAll().forEach((t) => t.kill());
+		return () => {
+			ScrollTrigger.getAll().forEach((t) => t.kill());
+			leafletMap?.remove();
+		};
 	});
 </script>
 
@@ -271,25 +350,10 @@
 		</div>
 
 		<div class="css-map-box">
-			<div class="css-map-roads"></div>
-			<div class="css-map-pin" style="top:30%;left:28%;"></div>
-			<div class="css-map-pin" style="top:56%;left:52%;"></div>
-			<div class="css-map-pin" style="top:38%;left:74%;"></div>
-
-			<div class="map-zoom-ctrl">
-				<button class="map-zoom-btn"
-					onmouseenter={(e)=>(e.currentTarget as HTMLElement).style.background='#faf5eb'}
-					onmouseleave={(e)=>(e.currentTarget as HTMLElement).style.background='white'}
-				>+</button>
-				<button class="map-zoom-btn"
-					onmouseenter={(e)=>(e.currentTarget as HTMLElement).style.background='#faf5eb'}
-					onmouseleave={(e)=>(e.currentTarget as HTMLElement).style.background='white'}
-				>−</button>
-			</div>
-
+			<div bind:this={mapEl} style="width:100%;height:100%;"></div>
 			<div class="map-legend">
 				<span class="blink-dot" style="width:7px;height:7px;"></span>
-				{filteredMarkets.length} markets · live within 8&nbsp;km
+				{filteredMarkets.length} market{filteredMarkets.length !== 1 ? 's' : ''} open on {selectedDay}
 			</div>
 		</div>
 	</div>
@@ -682,43 +746,7 @@
 		overflow: hidden;
 		border: 1px solid #e0d8c8;
 		border-radius: 14px;
-		background:
-			linear-gradient(rgba(224,216,200,0.6) 1px, transparent 1px) 0 0 / 40px 40px,
-			linear-gradient(90deg, rgba(224,216,200,0.6) 1px, transparent 1px) 0 0 / 40px 40px,
-			radial-gradient(circle at 30% 40%, #f5ecd8 0%, #f0e9d6 60%, #ebe2ca 100%);
 	}
-	.css-map-roads {
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		background:
-			linear-gradient(90deg, transparent 49.7%, rgba(229,49,29,0.08) 49.7%, rgba(229,49,29,0.08) 50.3%, transparent 50.3%),
-			linear-gradient(transparent 30%, rgba(138,125,101,0.15) 30%, rgba(138,125,101,0.15) 30.3%, transparent 30.3%),
-			linear-gradient(transparent 65%, rgba(138,125,101,0.15) 65%, rgba(138,125,101,0.15) 65.3%, transparent 65.3%);
-	}
-	.map-zoom-ctrl {
-		position: absolute;
-		right: 18px;
-		top: 18px;
-		background: white;
-		border: 1px solid #e0d8c8;
-		border-radius: 10px;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-	}
-	.map-zoom-btn {
-		border: 0;
-		background: white;
-		width: 34px;
-		height: 34px;
-		cursor: pointer;
-		font-size: 16px;
-		color: #1a1209;
-		font-family: 'Sora', sans-serif;
-		transition: background 0.1s;
-	}
-	.map-zoom-btn:first-child { border-bottom: 1px solid #e0d8c8; }
 	.map-legend {
 		position: absolute;
 		left: 18px;
@@ -884,6 +912,35 @@
 	.pg-footer { border-top: 1px solid #e0d8c8; padding: 36px 0 56px; }
 	.pg-footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
 	.footer-logo { font-family: 'Anton', sans-serif; color: #1a1209; font-size: 16px; letter-spacing: 0.04em; }
+
+	/* ── Leaflet overrides ── */
+	:global(.leaflet-control-zoom) {
+		border: 1px solid #e0d8c8 !important;
+		border-radius: 10px !important;
+		overflow: hidden;
+		box-shadow: none !important;
+	}
+	:global(.leaflet-control-zoom a) {
+		width: 34px !important;
+		height: 34px !important;
+		line-height: 34px !important;
+		font-size: 16px !important;
+		color: #1a1209 !important;
+		background: white !important;
+		border-bottom: 1px solid #e0d8c8 !important;
+		font-family: 'Sora', sans-serif !important;
+	}
+	:global(.leaflet-control-zoom a:hover) { background: #faf5eb !important; }
+	:global(.leaflet-control-zoom-out) { border-bottom: none !important; }
+	:global(.leaflet-popup-content-wrapper) {
+		border-radius: 12px !important;
+		box-shadow: 0 4px 20px rgba(26,18,9,0.12) !important;
+		border: 1px solid #e0d8c8 !important;
+		padding: 0 !important;
+	}
+	:global(.leaflet-popup-content) { margin: 14px 16px !important; }
+	:global(.leaflet-popup-tip) { background: white !important; }
+	:global(.leaflet-popup-close-button) { color: #8a7d65 !important; }
 
 	/* ── Empty state ── */
 	.empty-state { text-align: center; padding: 64px 24px; background: white; border-radius: 14px; border: 1px solid #e0d8c8; margin-top: 18px; }

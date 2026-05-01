@@ -102,8 +102,8 @@ body {
 
 /* ── Map pin pulse (decorative CSS map) ── */
 @keyframes pin-pulse {
-	0% { transform: scale(0.8); opacity: 0.9; }
-	100% { transform: scale(3); opacity: 0; }
+	0%   { transform: scale(1);   opacity: 0.7; }
+	100% { transform: scale(3.5); opacity: 0; }
 }
 .css-map-pin {
 	position: absolute;
@@ -118,7 +118,8 @@ body {
 .css-map-pin::after {
 	content: '';
 	position: absolute;
-	inset: -4px;
+	top: 0; left: 0;
+	width: 100%; height: 100%;
 	border-radius: 50%;
 	border: 2px solid #e5311d;
 	animation: pin-pulse 2.2s ease-out infinite;
@@ -175,6 +176,8 @@ body {
 	height: 18px;
 }
 .map-pin {
+	position: relative;
+	z-index: 1;
 	width: 18px;
 	height: 18px;
 	background: #e5311d;
@@ -189,14 +192,15 @@ body {
 }
 .map-pin-pulse {
 	position: absolute;
-	inset: -6px;
+	top: 0; left: 0;
+	width: 18px; height: 18px;
 	border: 1.5px solid #e5311d;
 	border-radius: 50%;
 	animation: map-pulse 2s ease-out infinite;
 }
 @keyframes map-pulse {
-	0% { transform: scale(0.7); opacity: 0.7; }
-	100% { transform: scale(2); opacity: 0; }
+	0%   { transform: scale(1);   opacity: 0.7; }
+	100% { transform: scale(3.5); opacity: 0; }
 }
 
 /* ── Skeleton shimmer ── */

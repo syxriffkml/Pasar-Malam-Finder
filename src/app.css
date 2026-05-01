@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--cream: #faf5eb;
+	--surface: #ffffff;
+	--soft-surface: #f0e9d6;
+	--primary: #e5311d;
+	--red-tint: #fdf0ee;
+	--red-border: #f5c4bc;
+	--accent: #f5c518;
+	--ink: #1a1209;
+	--muted: #8a7d65;
+	--border: #e0d8c8;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	background-color: var(--cream);
+	color: var(--ink);
+	font-family: 'Sora', sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Utility classes ── */
+@layer components {
+	.badge-open {
+		@apply bg-primary text-white text-xs font-sora font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap;
+	}
+	.badge-verified {
+		@apply bg-red-tint text-primary text-xs font-sora font-medium px-2.5 py-0.5 rounded-full border border-red-border whitespace-nowrap;
+	}
+	.badge-pending {
+		@apply bg-soft-surface text-muted text-xs font-sora font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap;
+	}
+
+	.btn-primary {
+		@apply bg-primary text-white font-anton tracking-wide rounded-[10px] px-6 py-2.5 hover:bg-[#c4291a] active:scale-95 transition-all cursor-pointer;
+	}
+	.btn-secondary {
+		@apply bg-surface text-ink font-sora border-[1.5px] border-border rounded-[10px] px-6 py-2.5 hover:border-red-border transition-all cursor-pointer;
+	}
+	.btn-ghost {
+		@apply bg-transparent text-muted font-sora text-sm px-4 py-2 rounded-lg hover:bg-soft-surface transition-all cursor-pointer;
+	}
+
+	.day-pill {
+		@apply px-4 py-1.5 rounded-full border-[1.5px] border-border text-muted font-sora text-sm cursor-pointer transition-all select-none;
+	}
+	.day-pill:hover {
+		@apply border-red-border text-primary;
+	}
+	.day-pill.active {
+		@apply bg-primary text-white border-primary;
+	}
+	.day-pill.has-markets {
+		@apply bg-red-tint border-red-border text-primary;
+	}
+
+	.market-card {
+		@apply bg-surface rounded-card border-[1.5px] border-border overflow-hidden transition-all duration-200 cursor-pointer;
+	}
+	.market-card:hover {
+		@apply border-red-border -translate-y-0.5 shadow-sm;
+	}
+
+	.chip {
+		@apply inline-flex items-center gap-1.5 bg-surface border-[1.5px] border-red-border text-primary text-xs font-sora px-3 py-1 rounded-full;
+	}
+
+	.input-field {
+		@apply w-full bg-surface border-[1.5px] border-border rounded-xl px-4 py-3 text-ink font-sora text-sm placeholder:text-muted focus:outline-none focus:border-primary transition-colors;
+	}
+
+	.section-title {
+		@apply font-anton text-ink text-3xl md:text-4xl tracking-tight;
+	}
+}
+
+/* ── Page transition bar ── */
+.page-transition-bar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, #e5311d, #f5c518);
+	z-index: 9999;
+	transform-origin: left center;
+	transform: scaleX(0);
+	pointer-events: none;
+}
+
+/* ── Leaflet overrides ── */
+.leaflet-container {
+	font-family: 'Sora', sans-serif !important;
+	background: #f0e9d6 !important;
+}
+
+.leaflet-popup-content-wrapper {
+	border-radius: 12px !important;
+	box-shadow: 0 4px 20px rgba(26, 18, 9, 0.12) !important;
+	border: 1.5px solid #e0d8c8 !important;
+}
+
+.leaflet-popup-tip {
+	background: white !important;
+}
+
+/* ── Map pin ── */
+.map-pin-wrap {
+	position: relative;
+	width: 18px;
+	height: 18px;
+}
+.map-pin {
+	width: 18px;
+	height: 18px;
+	background: #e5311d;
+	border: 2px solid #1a1209;
+	border-radius: 50%;
+	transition: transform 0.2s, background 0.2s;
+}
+.map-pin.active {
+	background: #1a1209;
+	border-color: #e5311d;
+	transform: scale(1.4);
+}
+.map-pin-pulse {
+	position: absolute;
+	inset: -6px;
+	border: 1.5px solid #e5311d;
+	border-radius: 50%;
+	animation: map-pulse 2s ease-out infinite;
+}
+@keyframes map-pulse {
+	0% { transform: scale(0.7); opacity: 0.7; }
+	100% { transform: scale(2); opacity: 0; }
+}
+
+/* ── Skeleton shimmer ── */
+@keyframes shimmer {
+	0% { background-position: -400px 0; }
+	100% { background-position: 400px 0; }
+}
+.skeleton {
+	background: linear-gradient(90deg, #f0e9d6 25%, #e8e0cc 50%, #f0e9d6 75%);
+	background-size: 800px 100%;
+	animation: shimmer 1.5s infinite linear;
+	border-radius: 8px;
+}
+
+/* ── Star rating ── */
+.star-btn {
+	transition: transform 0.15s;
+	cursor: pointer;
+}
+.star-btn:hover {
+	transform: scale(1.2);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Market } from '$lib/types';
-	import { isOpenToday, formatTime, getCardBandColor } from '$lib/utils';
+	import { isOpenNow, formatTime, getCardBandColor } from '$lib/utils';
 
 	interface Props {
 		market: Market;
@@ -10,7 +10,7 @@
 
 	let { market, class: className = '', highlight = false }: Props = $props();
 
-	const openToday = $derived(isOpenToday(market.operating_days));
+	const openNow = $derived(isOpenNow(market.operating_days, market.start_time, market.end_time));
 	const bandColor = $derived(getCardBandColor(market.id));
 </script>
 
@@ -28,10 +28,9 @@
 				{market.name}
 			</h3>
 			<div class="flex flex-wrap gap-1 justify-end shrink-0 mt-0.5">
-				{#if openToday}
+				{#if openNow}
 					<span class="badge-open">Open now</span>
-				{/if}
-				{#if market.is_verified}
+				{:else if market.is_verified}
 					<span class="badge-verified">Verified</span>
 				{:else}
 					<span class="badge-pending">Unverified</span>

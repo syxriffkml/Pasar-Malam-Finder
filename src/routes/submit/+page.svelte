@@ -322,7 +322,7 @@
 						</div>
 					</div>
 
-					<div class="grid grid-cols-2 gap-4">
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 						<div>
 							<label class="font-sora text-xs text-muted font-medium mb-1.5 block" for="start-time">
 								Opening Time
@@ -362,7 +362,7 @@
 							<p class="font-sora text-xs text-muted">Market Name</p>
 							<p class="font-anton text-xl text-ink mt-0.5">{marketName}</p>
 						</div>
-						<div class="grid grid-cols-2 gap-3">
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 							<div>
 								<p class="font-sora text-xs text-muted">State</p>
 								<p class="font-sora text-sm text-ink mt-0.5">{marketState}</p>

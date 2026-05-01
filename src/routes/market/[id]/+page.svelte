@@ -179,7 +179,7 @@
 	<!-- Ghost watermark -->
 	<div
 		class="ghost-watermark absolute top-0 right-0 select-none pointer-events-none overflow-hidden"
-		style="font-family: Anton, sans-serif; font-size: clamp(5rem, 15vw, 11rem); color: rgba(229,49,29,0.07); line-height: 1; white-space: nowrap; transform: translateX(5%);"
+		style="font-family: Anton, sans-serif; font-size: clamp(3rem, 12vw, 11rem); color: rgba(229,49,29,0.07); line-height: 1; white-space: nowrap; transform: translateX(5%);"
 		aria-hidden="true"
 	>
 		{data.market.name}

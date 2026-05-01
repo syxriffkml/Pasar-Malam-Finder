@@ -1,4 +1,19 @@
 export const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export const MALAY_DAYS = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+
+export function toMalayDay(englishDay: string): string {
+	const idx = DAYS.indexOf(englishDay);
+	return idx >= 0 ? MALAY_DAYS[idx] : englishDay;
+}
+
+export function fromMalayDay(malayDay: string): string {
+	const idx = MALAY_DAYS.indexOf(malayDay);
+	return idx >= 0 ? DAYS[idx] : malayDay;
+}
+
+export function getTodayMalay(): string {
+	return MALAY_DAYS[new Date().getDay()];
+}
 
 export const STATES = [
 	'Johor',
@@ -25,6 +40,15 @@ export function getTodayName(): string {
 
 export function isOpenToday(operatingDays: string[]): boolean {
 	return operatingDays.includes(getTodayName());
+}
+
+export function isOpenNow(operatingDays: string[], startTime: string, endTime: string): boolean {
+	if (!isOpenToday(operatingDays)) return false;
+	const now = new Date();
+	const currentMinutes = now.getHours() * 60 + now.getMinutes();
+	const [sh, sm] = startTime.split(':').map(Number);
+	const [eh, em] = endTime.split(':').map(Number);
+	return currentMinutes >= sh * 60 + sm && currentMinutes <= eh * 60 + em;
 }
 
 export function formatTime(time: string): string {

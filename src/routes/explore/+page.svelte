@@ -108,7 +108,7 @@
 			if (!market.lat || !market.lng || !L) return;
 
 			const icon = L.divIcon({
-				html: `<div class="map-pin-wrap"><div class="map-pin"></div><div class="map-pin-pulse"></div></div>`,
+				html: `<div class="map-pin" style="width:18px;height:18px;background:#e5311d;border-radius:50%;border:3px solid white;animation:map-pulse 2.2s ease-out infinite;"></div>`,
 				className: '',
 				iconSize: [18, 18],
 				iconAnchor: [9, 9]

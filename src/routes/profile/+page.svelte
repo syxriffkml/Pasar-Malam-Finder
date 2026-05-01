@@ -116,7 +116,8 @@
 		{#if data.userReviews.length === 0}
 			<div class="text-center py-16 bg-surface rounded-2xl border border-border">
 				<div class="text-4xl mb-3">⭐</div>
-				<p class="font-sora text-muted text-sm">No reviews yet.</p>
+				<p class="font-sora text-muted text-sm">You haven't written any reviews yet.</p>
+				<a href="/explore" class="inline-block mt-4 btn-primary text-sm py-2 px-6">Find a Market to Review</a>
 			</div>
 		{:else}
 			<div class="flex flex-col gap-4">

@@ -51,11 +51,7 @@
 		valid.forEach((market) => {
 			const icon = L.divIcon({
 				className: '',
-				html: `<div style="position:relative;width:18px;height:18px;">
-					<div style="position:absolute;top:0;left:0;width:18px;height:18px;border-radius:50%;border:2px solid #e5311d;animation:pin-pulse 2.2s ease-out infinite;"></div>
-					<div style="position:absolute;top:0;left:0;width:18px;height:18px;border-radius:50%;border:2px solid #e5311d;animation:pin-pulse 2.2s ease-out 1.1s infinite;"></div>
-					<div style="width:18px;height:18px;background:#e5311d;border-radius:50%;border:3px solid white;box-shadow:0 4px 10px rgba(229,49,29,0.4);position:relative;z-index:1;"></div>
-				</div>`,
+				html: `<div style="width:18px;height:18px;background:#e5311d;border-radius:50%;border:3px solid white;animation:pin-pulse 2.2s ease-out infinite;"></div>`,
 				iconSize: [18, 18],
 				iconAnchor: [9, 9],
 				popupAnchor: [0, -12]

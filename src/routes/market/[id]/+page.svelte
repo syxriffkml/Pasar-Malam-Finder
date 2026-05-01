@@ -5,7 +5,14 @@
 	import StarRating from '$lib/components/StarRating.svelte';
 	import MarketCard from '$lib/components/MarketCard.svelte';
 	import { supabaseStore, showToast, showAuthModal } from '$lib/stores';
-	import { formatTime, formatDate } from '$lib/utils';
+	import { formatTime, formatDate, isOpenNow } from '$lib/utils';
+
+	let copied = $state(false);
+	function copyLink() {
+		navigator.clipboard.writeText(window.location.href);
+		copied = true;
+		setTimeout(() => (copied = false), 2000);
+	}
 	import type { PageData } from './$types';
 	import { invalidateAll } from '$app/navigation';
 	import { fade, scale } from 'svelte/transition';
@@ -190,7 +197,9 @@
 			<!-- State badge -->
 			<div class="inline-flex items-center gap-1.5 mb-4">
 				<span class="badge-verified">{data.market.state}</span>
-				{#if data.market.is_verified}
+				{#if isOpenNow(data.market.operating_days, data.market.start_time, data.market.end_time)}
+					<span class="badge-open">Open now</span>
+				{:else if data.market.is_verified}
 					<span class="badge-verified">Verified</span>
 				{:else}
 					<span class="badge-pending">Pending Review</span>
@@ -260,6 +269,20 @@
 					/>
 				</svg>
 				{favorited ? 'Saved' : 'Save'}
+			</button>
+
+			<button onclick={copyLink} class="btn-ghost flex items-center gap-2 text-sm">
+				{#if copied}
+					<svg class="w-4 h-4 text-primary" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+					</svg>
+					Copied!
+				{:else}
+					<svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+						<path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+					</svg>
+					Share
+				{/if}
 			</button>
 
 			<button

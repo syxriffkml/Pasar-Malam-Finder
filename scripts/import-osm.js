@@ -112,16 +112,39 @@ nwr["name"~"pasar malam",i](1.0,99.6,7.4,119.3);
 out center;`;
 
 	console.log('Fetching from Overpass API…');
-	const res = await fetch('https://overpass-api.de/api/interpreter', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-		body: `data=${encodeURIComponent(query)}`,
+	const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+	const res = await fetch(url, {
+		headers: {
+			'Accept': 'application/json',
+			'User-Agent': 'PasarMalamFinder/1.0 (data import; contact@pasarfinder.my)'
+		}
 	});
 
-	if (!res.ok) throw new Error(`Overpass API error: ${res.status}`);
+	if (!res.ok) {
+		const body = await res.text();
+		throw new Error(`Overpass API error: ${res.status}\n${body.slice(0, 300)}`);
+	}
 	const json = await res.json();
 	console.log(`Got ${json.elements.length} elements from OSM`);
 	return json.elements;
+}
+
+// Generic names that are streets/locations, not real market names
+const SKIP_NAMES = new Set([
+	'pasar malam', 'pasar malam.', 'jalan pasar malam', 'tapak pasar malam',
+	'gerai pasar malam', 'pasar malam (night market)', 'sppk pasar malam',
+	'pasar malam sabtu', 'pasar malam ahad', 'pasar malam (ahad)',
+	'pasar malam isnin', 'pasar malam (isnin)', 'pasar malam khamis',
+	'pasar malam selasa', 'pasar malam jumaat', 'pasar malam rabu',
+]);
+
+// Extract area from market name — strip common prefixes like "Pasar Malam ", "Tapak Pasar Malam "
+function extractAreaFromName(name) {
+	const stripped = name
+		.replace(/^(tapak\s+)?pasar\s+(malam|tani)\s*/i, '')
+		.replace(/\s*\(.*?\)\s*$/, '') // remove trailing (day) like "(Sabtu)"
+		.trim();
+	return stripped.length > 2 ? stripped : '';
 }
 
 function mapElement(el) {
@@ -131,16 +154,21 @@ function mapElement(el) {
 
 	if (!lat || !lng || !tags.name) return null;
 
+	// Skip purely generic names
+	if (SKIP_NAMES.has(tags.name.trim().toLowerCase())) return null;
+
 	const { operating_days, start_time, end_time } = parseOpeningHours(tags.opening_hours);
+
+	const area =
+		tags['addr:suburb'] ??
+		tags['addr:city'] ??
+		tags['addr:district'] ??
+		tags['addr:town'] ??
+		extractAreaFromName(tags.name);
 
 	return {
 		name: tags.name,
-		area:
-			tags['addr:suburb'] ??
-			tags['addr:city'] ??
-			tags['addr:district'] ??
-			tags['addr:town'] ??
-			'',
+		area,
 		state: normaliseState(tags['addr:state']) ?? '',
 		address: tags['addr:full'] ?? tags['addr:street'] ?? tags.name,
 		lat,
@@ -169,10 +197,7 @@ async function main() {
 	let inserted = 0;
 	for (let i = 0; i < markets.length; i += 50) {
 		const batch = markets.slice(i, i + 50);
-		const { error } = await supabase.from('markets').upsert(batch, {
-			onConflict: 'name,area',
-			ignoreDuplicates: true,
-		});
+		const { error } = await supabase.from('markets').insert(batch);
 		if (error) {
 			console.error('Upsert error:', error.message);
 		} else {

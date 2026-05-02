@@ -317,7 +317,7 @@
 				{/each}
 			</div>
 			{#if filteredMarkets.length > 4}
-				<div style="text-align: center; margin-top: 20px;">
+				<div style="text-align: center; margin-top: 52px; position: relative; z-index: 2;">
 					<a href="/explore?day={selectedEnglish}" class="btn-secondary" style="font-size: 14px;">
 						See all {filteredMarkets.length} markets on {selectedDay} →
 					</a>

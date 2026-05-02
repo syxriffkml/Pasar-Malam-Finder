@@ -16,20 +16,35 @@
 	let highlightId: string | null = $state(null);
 	let displayCount = $state(0);
 
-	// Sync initial URL params into state
+	// Sync day/state from URL; search is local only
 	$effect(() => {
-		searchQuery = data.q ?? '';
 		activeDay = data.day ?? '';
 		activeState = data.state ?? '';
+		// Only set search from URL on initial load (when searchQuery is empty)
+		if (!searchQuery) searchQuery = data.q ?? '';
 	});
 
-	// Animate market count on data change
+	// Client-side search filter — no navigation, no focus loss
+	const visibleMarkets = $derived(
+		searchQuery.trim()
+			? data.markets.filter((m) => {
+					const q = searchQuery.toLowerCase();
+					return (
+						m.name.toLowerCase().includes(q) ||
+						m.area.toLowerCase().includes(q) ||
+						m.state.toLowerCase().includes(q)
+					);
+				})
+			: data.markets
+	);
+
+	// Animate market count when visible list changes
 	$effect(() => {
-		const target = data.markets.length;
+		const target = visibleMarkets.length;
 		const proxy = { val: displayCount };
 		gsap.to(proxy, {
 			val: target,
-			duration: 0.6,
+			duration: 0.5,
 			ease: 'power2.out',
 			onUpdate() { displayCount = Math.round(proxy.val); }
 		});
@@ -45,9 +60,9 @@
 
 	const today = getTodayName();
 
+	// Only day/state go to the server — search is purely client-side
 	function applyFilters() {
 		const params = new URLSearchParams();
-		if (searchQuery.trim()) params.set('q', searchQuery.trim());
 		if (activeDay) params.set('day', activeDay);
 		if (activeState) params.set('state', activeState);
 		goto(`/explore?${params.toString()}`, { replaceState: true });
@@ -61,12 +76,6 @@
 	function handleStateChange(e: Event) {
 		activeState = (e.target as HTMLSelectElement).value;
 		applyFilters();
-	}
-
-	let searchTimeout: ReturnType<typeof setTimeout>;
-	function handleSearchInput() {
-		clearTimeout(searchTimeout);
-		searchTimeout = setTimeout(applyFilters, 350);
 	}
 
 	function handleCardClick(market: Market) {
@@ -154,7 +163,7 @@
 
 	$effect(() => {
 		if (mapLoaded && mapInstance) {
-			updateMapMarkers(data.markets);
+			updateMapMarkers(visibleMarkets);
 		}
 	});
 
@@ -311,14 +320,14 @@
 				<input
 					type="text"
 					bind:value={searchQuery}
-					oninput={handleSearchInput}
+
 					placeholder="Name, area, state…"
 					class="flex-1 bg-transparent text-ink placeholder:text-muted text-sm font-sora focus:outline-none"
 				/>
 				{#if searchQuery}
 					<button
 						aria-label="Clear search"
-						onclick={() => { searchQuery = ''; applyFilters(); }}
+						onclick={() => { searchQuery = ''; }}
 						class="text-muted hover:text-ink transition-colors"
 					>
 						<svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -384,13 +393,13 @@
 
 			<!-- Market cards list -->
 			<div class="flex flex-col gap-3">
-				{#if data.markets.length === 0}
+				{#if visibleMarkets.length === 0}
 					<div class="text-center py-14 bg-surface rounded-2xl border border-border">
 						<p class="text-3xl mb-3">🔍</p>
 						<p class="font-sora text-muted text-sm">No markets match your filters.</p>
 					</div>
 				{:else}
-					{#each data.markets as market}
+					{#each visibleMarkets as market}
 						<div
 							class="explore-card cursor-pointer"
 							onclick={() => handleCardClick(market)}

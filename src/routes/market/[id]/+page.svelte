@@ -7,6 +7,8 @@
 	import { supabaseStore, showToast, showAuthModal } from '$lib/stores';
 	import { formatTime, formatDate, isOpenNow } from '$lib/utils';
 
+	let miniMapEl: HTMLDivElement;
+
 	let copied = $state(false);
 	function copyLink() {
 		navigator.clipboard.writeText(window.location.href);
@@ -127,6 +129,35 @@
 	onMount(() => {
 		gsap.registerPlugin(ScrollTrigger);
 
+		// Mini map
+		if (data.market.lat && data.market.lng && miniMapEl) {
+			(async () => {
+				const leaflet = await import('leaflet');
+				await import('leaflet/dist/leaflet.css');
+				const L = leaflet.default ?? (leaflet as unknown as typeof import('leaflet'));
+				const map = L.map(miniMapEl, {
+					center: [data.market.lat, data.market.lng],
+					zoom: 15,
+					zoomControl: false,
+					dragging: false,
+					scrollWheelZoom: false,
+					doubleClickZoom: false
+				});
+				L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+					attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+					maxZoom: 19
+				}).addTo(map);
+				const icon = L.divIcon({
+					html: `<div style="width:14px;height:14px;background:#e5311d;border-radius:50%;border:3px solid white;animation:map-pulse 2.2s ease-out infinite;"></div>`,
+					className: '',
+					iconSize: [14, 14],
+					iconAnchor: [7, 7]
+				});
+				L.marker([data.market.lat, data.market.lng], { icon }).addTo(map);
+				setTimeout(() => map.invalidateSize(), 100);
+			})();
+		}
+
 		// Header slides in from left
 		gsap.from('.market-header-content', {
 			x: -40,
@@ -177,6 +208,12 @@
 
 <svelte:head>
 	<title>{data.market.name} — Pasar Malam Finder</title>
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="{data.market.name} — Pasar Malam Finder" />
+	<meta property="og:description" content="{data.market.description ? data.market.description.slice(0, 160) : `${data.market.name} — a pasar malam in ${data.market.area}, ${data.market.state}.`}" />
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="{data.market.name} — Pasar Malam Finder" />
+	<meta name="twitter:description" content="{data.market.description ? data.market.description.slice(0, 160) : `${data.market.name} — a pasar malam in ${data.market.area}, ${data.market.state}.`}" />
 </svelte:head>
 
 <!-- ── MARKET HEADER ─────────────────────────────────────────────── -->
@@ -417,25 +454,20 @@
 
 	<!-- Sidebar -->
 	<div class="flex flex-col gap-5">
-		<!-- Map mini preview -->
+		<!-- Mini map -->
 		{#if data.market.lat && data.market.lng}
 			<div class="bg-surface border border-border rounded-2xl overflow-hidden">
+				<div bind:this={miniMapEl} class="w-full" style="height: 180px;"></div>
 				<a
 					href="https://www.google.com/maps/search/?api=1&query={data.market.lat},{data.market.lng}"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center gap-3 px-4 py-3 hover:bg-soft-surface transition-colors"
+					class="flex items-center gap-3 px-4 py-3 hover:bg-soft-surface transition-colors border-t border-border"
 				>
-					<svg class="w-5 h-5 text-primary shrink-0" viewBox="0 0 20 20" fill="currentColor">
-						<path
-							fill-rule="evenodd"
-							d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-						/>
+					<svg class="w-4 h-4 text-primary shrink-0" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" />
 					</svg>
-					<div>
-						<p class="font-sora text-sm font-semibold text-ink">Get Directions</p>
-						<p class="font-sora text-xs text-muted">Open in Google Maps</p>
-					</div>
+					<span class="font-sora text-sm font-semibold text-ink">Get Directions</span>
 					<svg class="w-4 h-4 text-muted ml-auto" viewBox="0 0 20 20" fill="currentColor">
 						<path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
 						<path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />

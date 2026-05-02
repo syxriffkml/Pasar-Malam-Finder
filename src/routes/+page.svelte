@@ -310,7 +310,7 @@
 								<span class="card-day">
 									{market.operating_days.join(', ')} · <em style="color: #8a7d65; font-style: normal; font-weight: 400;">{formatTime(market.start_time)} – {formatTime(market.end_time)}</em>
 								</span>
-								<span class="card-rating">★ 4.8</span>
+								<span class="card-rating">★ {data.ratingsMap?.[market.id]?.toFixed(1) ?? '—'}</span>
 							</div>
 						</div>
 					</a>
@@ -393,7 +393,7 @@
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
 						{fm.area}
 					</span>
-					<span class="chip">★ 4.8 · 312 reviews</span>
+					<span class="chip">★ {data.ratingsMap?.[fm.id]?.toFixed(1) ?? '—'}</span>
 					<span class="chip">~120 stalls</span>
 					<span class="chip">Halal-friendly</span>
 					<span class="chip">Cash &amp; QR</span>

@@ -9,7 +9,7 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let activeTab = $state<'favorites' | 'submitted' | 'reviews'>('favorites');
+	let activeTab = $state<'favorites' | 'reviews'>('favorites');
 </script>
 
 <svelte:head>
@@ -35,7 +35,7 @@
 					</span>
 				{/if}
 				<span class="font-sora text-muted text-sm">
-					{data.favorites.length} saved · {data.submitted.length} submitted
+					{data.favorites.length} saved · {data.userReviews.length} reviews
 				</span>
 			</div>
 		</div>
@@ -45,7 +45,6 @@
 	<div class="flex gap-1 mb-8 border-b border-border">
 		{#each [
 			{ key: 'favorites', label: `Saved (${data.favorites.length})` },
-			{ key: 'submitted', label: `Submitted (${data.submitted.length})` },
 			{ key: 'reviews', label: `Reviews (${data.userReviews.length})` }
 		] as tab}
 			<button
@@ -74,38 +73,6 @@
 					{#if fav.markets}
 						<MarketCard market={fav.markets} />
 					{/if}
-				{/each}
-			</div>
-		{/if}
-	{/if}
-
-	<!-- Tab: Submitted markets -->
-	{#if activeTab === 'submitted'}
-		{#if data.submitted.length === 0}
-			<div class="text-center py-16 bg-surface rounded-2xl border border-border">
-				<div class="text-4xl mb-3">📍</div>
-				<p class="font-sora text-muted text-sm">You haven't submitted any markets yet.</p>
-				<a href="/submit" class="inline-block mt-4 btn-primary text-sm py-2 px-6">Submit a Market</a>
-			</div>
-		{:else}
-			<div class="flex flex-col gap-3">
-				{#each data.submitted as market}
-					<a
-						href="/market/{market.id}"
-						class="bg-surface border border-border rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-red-border transition-colors"
-					>
-						<div class="min-w-0">
-							<h3 class="font-anton text-lg text-ink truncate">{market.name}</h3>
-							<p class="font-sora text-sm text-muted mt-0.5">{market.area}, {market.state}</p>
-						</div>
-						<div class="shrink-0">
-							{#if market.is_verified}
-								<span class="badge-verified">Verified</span>
-							{:else}
-								<span class="badge-pending">Pending Review</span>
-							{/if}
-						</div>
-					</a>
 				{/each}
 			</div>
 		{/if}
@@ -151,65 +118,6 @@
 					Admin
 				</span>
 				<h2 class="font-anton text-2xl text-ink">Admin Panel</h2>
-			</div>
-
-			<!-- Unverified markets -->
-			<div class="mb-10">
-				<h3 class="font-sora font-semibold text-sm text-muted uppercase tracking-wider mb-4">
-					Pending Markets ({data.unverifiedMarkets?.length ?? 0})
-				</h3>
-				{#if !data.unverifiedMarkets?.length}
-					<p class="font-sora text-sm text-muted py-4 text-center bg-surface rounded-xl border border-border">
-						All caught up!
-					</p>
-				{:else}
-					<div class="flex flex-col gap-3">
-						{#each data.unverifiedMarkets as market}
-							<div class="bg-surface border border-border rounded-2xl p-4 flex items-center justify-between gap-4">
-								<div class="min-w-0">
-									<h4 class="font-anton text-lg text-ink truncate">{market.name}</h4>
-									<p class="font-sora text-sm text-muted">{market.area}, {market.state}</p>
-								</div>
-								<div class="flex items-center gap-2 shrink-0">
-									<form
-										method="POST"
-										action="?/approveMarket"
-										use:enhance={() => {
-											return async ({ result }) => {
-												if (result.type === 'success') {
-													showToast(`${market.name} approved`);
-													invalidateAll();
-												}
-											};
-										}}
-									>
-										<input type="hidden" name="marketId" value={market.id} />
-										<button type="submit" class="btn-primary text-sm py-1.5 px-4">
-											Approve
-										</button>
-									</form>
-									<form
-										method="POST"
-										action="?/rejectMarket"
-										use:enhance={() => {
-											return async ({ result }) => {
-												if (result.type === 'success') {
-													showToast(`Market rejected`, 'error');
-													invalidateAll();
-												}
-											};
-										}}
-									>
-										<input type="hidden" name="marketId" value={market.id} />
-										<button type="submit" class="btn-ghost text-sm text-primary">
-											Reject
-										</button>
-									</form>
-								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
 			</div>
 
 			<!-- Pending reports -->

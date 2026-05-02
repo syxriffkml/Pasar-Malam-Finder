@@ -187,7 +187,7 @@
 
 		<h1 class="pg-h1">
 			<span class="hero-word" style="display: block; color: #1a1209;">CARI</span>
-			<span class="hero-word" style="display: block; font-family: 'Instrument Serif', serif; font-style: italic; color: #e5311d; text-transform: lowercase; font-weight: 400; letter-spacing: -0.02em; padding: 0 6px;">pasar malam</span>
+			<span class="hero-word" style="display: block; font-family: 'Instrument Serif', serif; font-style: italic; color: #e5311d; text-transform: uppercase; font-weight: 700; letter-spacing: -0.02em; padding: 0 6px;">pasar malam</span>
 			<span class="hero-word" style="display: block;">
 				<span class="redbox">
 					<span style="display: inline-block; transform: translateY(4px);">NEAR YOU</span>
@@ -326,7 +326,6 @@
 		{:else}
 			<div class="empty-state">
 				<p style="font-family: 'Sora', sans-serif; color: #8a7d65; font-size: 14px;">No markets listed for {selectedDay} yet.</p>
-				<a href="/submit" class="btn-primary" style="display: inline-block; margin-top: 16px; font-size: 14px; text-decoration: none;">Add one →</a>
 			</div>
 		{/if}
 	</div>
@@ -492,32 +491,6 @@
 	</div>
 </section>
 
-<!-- ── SUBMIT CTA ─────────────────────────────────────────────────── -->
-<section class="pg-section">
-	<div class="pg-wrap">
-		<div class="pg-head">
-			<div>
-				<div class="eyebrow">Help us grow</div>
-				<h2 class="pg-h2">
-					Add a <span class="serif-accent">market</span>
-				</h2>
-			</div>
-			<div class="pg-meta">Takes 90 seconds · we verify within 48h</div>
-		</div>
-
-		<div class="btn-row">
-			<a href="/submit" class="btn-anton"
-				onmouseenter={(e)=>{const el=e.currentTarget as HTMLElement;el.style.background='#c92715';el.style.transform='translateY(-1px)';}}
-				onmouseleave={(e)=>{const el=e.currentTarget as HTMLElement;el.style.background='#e5311d';el.style.transform='';}}
-			>Submit a market</a>
-			<button class="btn-outline"
-				onmouseenter={(e)=>(e.currentTarget as HTMLElement).style.borderColor='#1a1209'}
-				onmouseleave={(e)=>(e.currentTarget as HTMLElement).style.borderColor='#e0d8c8'}
-			>How verification works →</button>
-		</div>
-	</div>
-</section>
-
 <!-- ── FOOTER ─────────────────────────────────────────────────────── -->
 <footer class="pg-footer">
 	<div class="pg-wrap pg-footer-inner">
@@ -630,6 +603,7 @@
 
 	/* ── Section layout ── */
 	.pg-section { padding: 64px 0 8px; }
+	.pg-section:last-of-type { padding-bottom: 80px; }
 
 	.pg-head {
 		display: flex;
@@ -651,9 +625,11 @@
 	.serif-accent {
 		font-family: 'Instrument Serif', serif;
 		font-style: italic;
+		font-weight: 700;
+		font-size: 1.15em;
+		text-transform: uppercase;
 		color: #e5311d;
-		text-transform: lowercase;
-		font-weight: 400;
+		-webkit-text-stroke: 0.6px #e5311d;
 	}
 
 	.pg-meta {
@@ -874,36 +850,6 @@
 	.review-stars { color: #e5311d; font-size: 13px; letter-spacing: 1px; }
 	.review-body { font-family: 'Sora', sans-serif; color: #8a7d65; font-size: 14px; line-height: 1.6; margin-top: 14px; }
 
-	/* ── Submit CTA ── */
-	.btn-row { margin-top: 18px; display: flex; gap: 14px; align-items: center; padding: 28px 0 80px; flex-wrap: wrap; }
-	.btn-anton {
-		font-family: 'Anton', sans-serif;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		font-size: 18px;
-		padding: 16px 28px;
-		border-radius: 10px;
-		border: 0;
-		cursor: pointer;
-		background: #e5311d;
-		color: white;
-		text-decoration: none;
-		transition: transform 0.15s ease, background 0.15s ease;
-		display: inline-block;
-	}
-	.btn-outline {
-		font-family: 'Sora', sans-serif;
-		font-size: 14px;
-		font-weight: 600;
-		padding: 16px 22px;
-		border-radius: 10px;
-		border: 1px solid #e0d8c8;
-		cursor: pointer;
-		background: white;
-		color: #1a1209;
-		transition: border-color 0.15s ease;
-	}
-
 	/* ── Footer ── */
 	.pg-footer { border-top: 1px solid #e0d8c8; padding: 36px 0 56px; }
 	.pg-footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
@@ -996,6 +942,7 @@
 
 		/* Sections */
 		.pg-section { padding: 40px 0 4px; }
+		.pg-section:last-of-type { padding-bottom: 56px; }
 		.pg-head { flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 16px; }
 		.pg-meta { display: none; }
 		.pg-h2 { font-size: 30px; }
@@ -1025,11 +972,6 @@
 		/* Reviews */
 		.reviews-grid { grid-template-columns: 1fr; }
 		.review-card { padding: 18px; }
-
-		/* Submit CTA */
-		.btn-row { padding: 16px 0 48px; gap: 10px; }
-		.btn-anton { font-size: 16px; padding: 14px 22px; }
-		.btn-outline { font-size: 13px; padding: 14px 18px; }
 
 		/* Footer */
 		.pg-footer { padding: 28px 0 40px; }

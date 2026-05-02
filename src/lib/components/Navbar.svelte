@@ -19,8 +19,7 @@
 	const navLinks = [
 		{ href: '/explore', label: 'Markets' },
 		{ href: '/explore#map', label: 'Map' },
-		{ href: '/explore#reviews', label: 'Reviews' },
-		{ href: '/submit', label: 'Submit a market' }
+		{ href: '/explore#reviews', label: 'Reviews' }
 	];
 
 	async function signOut() {
@@ -31,12 +30,7 @@
 		goto('/');
 	}
 
-	function handleSubmitClick(e: MouseEvent) {
-		if (!user) {
-			e.preventDefault();
-			showAuthModal('Sign in to submit a market');
-		}
-	}
+
 </script>
 
 <nav class="sticky top-0 z-50 bg-cream/95 backdrop-blur-md" style="border-bottom: 1px solid #e0d8c8;">
@@ -61,7 +55,6 @@
 			{#each navLinks as link}
 				<a
 					href={link.href}
-					onclick={link.href === '/submit' ? handleSubmitClick : undefined}
 					class="font-sora text-ink transition-opacity"
 					style="font-size: 14px; opacity: {page.url.pathname === link.href || (page.url.pathname === '/explore' && link.href.startsWith('/explore')) ? '1' : '0.75'};"
 					onmouseenter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}

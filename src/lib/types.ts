@@ -19,7 +19,7 @@ export type Market = {
 	description: string;
 	is_verified: boolean;
 	is_active: boolean;
-	submitted_by: string;
+	submitted_by?: string | null;
 	created_at: string;
 };
 

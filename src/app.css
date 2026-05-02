@@ -119,6 +119,17 @@ body {
 	animation: pin-pulse 2.2s ease-out infinite;
 }
 
+/* ── Serif accent (Instrument Serif italic, red) ── */
+.serif-accent {
+	font-family: 'Instrument Serif', serif;
+	font-style: italic;
+	font-weight: 700;
+	font-size: 1.15em;
+	text-transform: uppercase;
+	color: #e5311d;
+	-webkit-text-stroke: 0.6px #e5311d;
+}
+
 /* ── Eyebrow label ── */
 .eyebrow {
 	font-family: 'Sora', sans-serif;

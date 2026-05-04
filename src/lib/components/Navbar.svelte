@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { gsap } from 'gsap';
 	import { supabaseStore, showToast, showAuthModal } from '$lib/stores';
 	import type { User } from '@supabase/supabase-js';
 	import type { Profile } from '$lib/types';
@@ -15,6 +16,8 @@
 
 	let menuOpen = $state(false);
 	let dropdownOpen = $state(false);
+	let menuEl: HTMLDivElement;
+	let backdropEl: HTMLDivElement;
 
 	const navLinks = [
 		{ href: '/explore', label: 'Markets' },
@@ -30,7 +33,38 @@
 		goto('/');
 	}
 
+	function openMenu() {
+		menuOpen = true;
+		document.body.style.overflow = 'hidden';
+		gsap.set(menuEl, { visibility: 'visible', x: '100%' });
+		gsap.set(backdropEl, { visibility: 'visible', opacity: 0, pointerEvents: 'auto' });
+		gsap.to(menuEl, { x: '0%', duration: 0.45, ease: 'power3.inOut' });
+		gsap.to(backdropEl, { opacity: 1, duration: 0.35, ease: 'power2.out' });
+	}
 
+	function closeMenu() {
+		gsap.to(menuEl, {
+			x: '100%',
+			duration: 0.4,
+			ease: 'power3.inOut',
+			onComplete: () => {
+				menuOpen = false;
+				gsap.set(menuEl, { visibility: 'hidden' });
+				document.body.style.overflow = '';
+			}
+		});
+		gsap.to(backdropEl, {
+			opacity: 0,
+			duration: 0.3,
+			ease: 'power2.in',
+			onComplete: () => gsap.set(backdropEl, { visibility: 'hidden', pointerEvents: 'none' })
+		});
+	}
+
+	function toggleMenu() {
+		if (menuOpen) closeMenu();
+		else openMenu();
+	}
 </script>
 
 <nav class="sticky top-0 z-50 bg-cream/95 backdrop-blur-md" style="border-bottom: 1px solid #e0d8c8;">
@@ -121,9 +155,9 @@
 			{/if}
 		</div>
 
-		<!-- Mobile hamburger -->
+		<!-- Hamburger button -->
 		<button
-			onclick={() => (menuOpen = !menuOpen)}
+			onclick={toggleMenu}
 			class="md:hidden p-2 rounded-lg hover:bg-soft-surface transition-colors"
 			aria-label="Menu"
 		>
@@ -134,41 +168,101 @@
 			</div>
 		</button>
 	</div>
+</nav>
 
-	<!-- Mobile menu -->
-	{#if menuOpen}
-		<div class="md:hidden bg-surface border-t border-border px-4 py-4 flex flex-col gap-1">
+<!-- Backdrop (tablet: dims content behind drawer) -->
+<div
+	bind:this={backdropEl}
+	class="fixed inset-0 z-[58] md:hidden"
+	style="visibility: hidden; opacity: 0; pointer-events: none; background: rgba(26,18,9,0.45);"
+	onclick={closeMenu}
+	aria-hidden="true"
+></div>
+
+<!-- Slide-in menu panel -->
+<div
+	bind:this={menuEl}
+	class="nav-drawer fixed top-0 right-0 z-[59] h-full flex flex-col md:hidden"
+	style="visibility: hidden; transform: translateX(100%);"
+>
+	<!-- Panel header -->
+	<div class="flex items-center justify-between px-6 py-5 shrink-0">
+		<!-- Brand visible on mobile only -->
+		<a href="/" onclick={closeMenu} class="sm:hidden flex items-center gap-2">
+			<div
+				class="w-6 h-6 bg-primary rounded-[5px] flex items-center justify-center"
+				style="transform: rotate(-4deg);"
+				aria-hidden="true"
+			>
+				<span class="font-anton text-white leading-none" style="font-size: 15px;">P</span>
+			</div>
+			<span class="font-anton text-white" style="font-size: 19px; letter-spacing: 0.04em;">
+				PASAR<span class="text-primary">.</span>FINDER
+			</span>
+		</a>
+		<span class="menu-label hidden sm:block font-anton" style="font-size: 18px; letter-spacing: 0.06em;">MENU</span>
+
+		<!-- Close button -->
+		<button
+			onclick={closeMenu}
+			class="close-btn p-2 rounded-lg transition-opacity hover:opacity-60"
+			aria-label="Close menu"
+		>
+			<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+				<path d="M6 18L18 6M6 6l12 12" />
+			</svg>
+		</button>
+	</div>
+
+	<!-- Nav links -->
+	<div class="flex-1 flex flex-col px-6 overflow-y-auto">
+		<nav class="flex flex-col mt-6 gap-2">
 			{#each navLinks as link}
 				<a
 					href={link.href}
-					onclick={() => (menuOpen = false)}
-					class="font-sora text-sm px-4 py-3 rounded-xl transition-colors
-					{page.url.pathname === link.href ? 'text-primary font-semibold bg-red-tint' : 'text-ink hover:bg-soft-surface'}"
+					onclick={closeMenu}
+					class="nav-link font-anton transition-opacity hover:opacity-60 leading-tight"
+					style="font-size: clamp(38px, 11vw, 52px); letter-spacing: 0.02em; opacity: {page.url.pathname.startsWith('/explore') && link.href.startsWith('/explore') ? '1' : page.url.pathname === link.href ? '1' : '0.35'};"
 				>
-					{link.label}
+					{link.label.toUpperCase()}
 				</a>
 			{/each}
-			<div class="border-t border-border mt-2 pt-2">
-				{#if user}
-					<a href="/profile" onclick={() => (menuOpen = false)} class="block font-sora text-sm px-4 py-3 rounded-xl text-ink hover:bg-soft-surface">
-						My Profile
-					</a>
-					<button onclick={signOut} class="w-full text-left font-sora text-sm px-4 py-3 rounded-xl text-muted hover:bg-soft-surface">
-						Sign Out
-					</button>
-				{:else}
-					<button
-						onclick={() => { menuOpen = false; showAuthModal(); }}
-						class="w-full font-sora font-medium text-white cursor-pointer"
-						style="background: #1a1209; padding: 12px; border-radius: 8px; font-size: 14px; border: none;"
-					>
-						Sign in
-					</button>
-				{/if}
-			</div>
-		</div>
-	{/if}
-</nav>
+		</nav>
+	</div>
+
+	<!-- Auth section -->
+	<div class="shrink-0 px-6 pb-8 pt-4 auth-section">
+		{#if user}
+			<a
+				href="/profile"
+				onclick={closeMenu}
+				class="flex items-center gap-3 px-4 py-3 rounded-xl transition-opacity hover:opacity-70"
+			>
+				<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-sora font-semibold text-sm shrink-0">
+					{(profile?.username ?? user.email ?? 'U')[0].toUpperCase()}
+				</div>
+				<div>
+					<p class="font-sora text-sm font-medium username-text">{profile?.username ?? 'Account'}</p>
+					<p class="font-sora text-xs profile-label">My Profile</p>
+				</div>
+			</a>
+			<button
+				onclick={() => { closeMenu(); signOut(); }}
+				class="w-full text-left font-sora text-sm px-4 py-3 rounded-xl transition-opacity hover:opacity-70 signout-btn"
+			>
+				Sign Out
+			</button>
+		{:else}
+			<button
+				onclick={() => { closeMenu(); showAuthModal(); }}
+				class="w-full font-sora font-medium text-white cursor-pointer rounded-lg"
+				style="background: #e5311d; padding: 13px 16px; border: none; font-size: 14px;"
+			>
+				Sign in
+			</button>
+		{/if}
+	</div>
+</div>
 
 {#if dropdownOpen}
 	<button
@@ -177,3 +271,80 @@
 		aria-label="Close dropdown"
 	></button>
 {/if}
+
+<style>
+	/* Mobile: fullscreen dark panel */
+	.nav-drawer {
+		width: 100vw;
+		background: #1a1209;
+	}
+
+	.nav-link {
+		color: #ffffff;
+	}
+
+	.close-btn {
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.auth-section {
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.username-text {
+		color: #ffffff;
+	}
+
+	.profile-label {
+		color: rgba(255, 255, 255, 0.45);
+	}
+
+	.signout-btn {
+		color: rgba(255, 255, 255, 0.4);
+	}
+
+	.menu-label {
+		color: rgba(255, 255, 255, 0);
+	}
+
+	/* Tablet (sm+): side drawer, light theme */
+	@media (min-width: 640px) {
+		.menu-label {
+			color: #1a1209;
+			text-decoration: underline;
+			text-decoration-color: #f97316;
+			text-underline-offset: 5px;
+			text-decoration-thickness: 2px;
+		}
+		.nav-drawer {
+			width: 280px;
+			background: #faf5eb;
+			border-left: 1px solid #e0d8c8;
+			box-shadow: -12px 0 40px rgba(26, 18, 9, 0.12);
+		}
+
+		.nav-link {
+			color: #1a1209;
+		}
+
+		.close-btn {
+			color: #8a7d65;
+		}
+
+		.auth-section {
+			border-top: 1px solid #e0d8c8;
+		}
+
+		.username-text {
+			color: #1a1209;
+		}
+
+		.profile-label {
+			color: #8a7d65;
+		}
+
+		.signout-btn {
+			color: #8a7d65;
+		}
+	}
+</style>

@@ -108,7 +108,7 @@
 						class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-soft-surface transition-colors"
 					>
 						<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-sora font-semibold text-sm">
-							{(profile?.username ?? user.email ?? 'U')[0].toUpperCase()}
+							{(profile?.username ?? 'U')[0].toUpperCase()}
 						</div>
 						<span class="font-sora text-sm text-ink">{profile?.username ?? 'Account'}</span>
 						<svg

@@ -16,7 +16,7 @@
 		setTimeout(() => (copied = false), 2000);
 	}
 	import type { PageData } from './$types';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { fade, scale } from 'svelte/transition';
 
 	let { data }: { data: PageData } = $props();
@@ -95,7 +95,7 @@
 			showToast('Review submitted!');
 			reviewRating = 0;
 			reviewComment = '';
-			invalidateAll();
+			invalidate('market:detail');
 		}
 	}
 

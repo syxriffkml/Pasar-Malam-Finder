@@ -2,7 +2,8 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getTodayName } from '$lib/utils';
 
-export const load: PageServerLoad = async ({ params, locals: { supabase, safeGetSession } }) => {
+export const load: PageServerLoad = async ({ depends, params, locals: { supabase, safeGetSession } }) => {
+	depends('market:detail');
 	const { user } = await safeGetSession();
 	const today = getTodayName();
 

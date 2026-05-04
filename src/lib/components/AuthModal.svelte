@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { authModalStore, closeAuthModal, showToast } from '$lib/stores';
-	import { invalidate } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import { fade, scale } from 'svelte/transition';
 
@@ -12,6 +12,7 @@
 	let username = $state('');
 	let loading = $state(false);
 	let errorMsg = $state('');
+	let showPassword = $state(false);
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -38,7 +39,7 @@
 			} else {
 				showToast('Welcome back!', 'success');
 				closeAuthModal();
-				invalidate('supabase:auth');
+				await invalidateAll();
 				reset();
 			}
 		}
@@ -57,6 +58,18 @@
 		reset();
 	}
 </script>
+
+<style>
+	/* Hide browser native password reveal button (Edge/Chrome) */
+	.password-input::-ms-reveal,
+	.password-input::-ms-clear {
+		display: none;
+	}
+	.password-input::-webkit-credentials-auto-fill-button,
+	.password-input::-webkit-contacts-auto-fill-button {
+		display: none;
+	}
+</style>
 
 {#if $authModalStore.open}
 	<div
@@ -143,15 +156,36 @@
 					<label class="block text-xs font-sora font-medium text-muted mb-1.5" for="password">
 						Password
 					</label>
-					<input
-						id="password"
-						type="password"
-						bind:value={password}
-						placeholder="••••••••"
-						class="input-field"
-						minlength="6"
-						required
-					/>
+					<div class="relative">
+						<input
+							id="password"
+							type={showPassword ? 'text' : 'password'}
+							bind:value={password}
+							placeholder="••••••••"
+							class="input-field pr-10 password-input"
+							minlength="6"
+							required
+						/>
+						<button
+							type="button"
+							onclick={() => (showPassword = !showPassword)}
+							class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink transition-colors"
+							aria-label={showPassword ? 'Hide password' : 'Show password'}
+						>
+							{#if showPassword}
+								<!-- Eye-slash -->
+								<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22"/>
+								</svg>
+							{:else}
+								<!-- Eye -->
+								<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+									<circle cx="12" cy="12" r="3"/>
+								</svg>
+							{/if}
+						</button>
+					</div>
 				</div>
 
 				{#if errorMsg}

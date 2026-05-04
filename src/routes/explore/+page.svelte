@@ -422,7 +422,7 @@
 		</div>
 
 		<!-- ── MAP ──────────────────────────────────────────── -->
-		<div class="explore-map-panel relative flex-1 min-h-[300px] sm:min-h-[460px] lg:min-h-0 lg:sticky lg:top-20 lg:h-[calc(100vh-7rem)] rounded-2xl overflow-hidden border border-border">
+		<div class="explore-map-panel relative flex-1 min-h-[300px] sm:min-h-[460px] lg:min-h-0 lg:sticky lg:top-20 lg:h-[calc(100vh-7rem)] rounded-2xl overflow-hidden border border-border" style="isolation: isolate;">
 			<div bind:this={mapContainer} class="w-full h-full min-h-[300px] sm:min-h-[460px]"></div>
 			{#if !mapLoaded}
 				<div class="absolute inset-0 bg-soft-surface flex items-center justify-center rounded-2xl">

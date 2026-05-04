@@ -456,7 +456,7 @@
 	<div class="flex flex-col gap-5">
 		<!-- Mini map -->
 		{#if data.market.lat && data.market.lng}
-			<div class="bg-surface border border-border rounded-2xl overflow-hidden">
+			<div class="bg-surface border border-border rounded-2xl overflow-hidden" style="isolation: isolate;">
 				<div bind:this={miniMapEl} class="w-full" style="height: 180px;"></div>
 				<a
 					href="https://www.google.com/maps/search/?api=1&query={data.market.lat},{data.market.lng}"

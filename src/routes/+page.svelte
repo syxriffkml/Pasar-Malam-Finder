@@ -718,6 +718,7 @@
 		overflow: hidden;
 		border: 1px solid #e0d8c8;
 		border-radius: 14px;
+		isolation: isolate;
 	}
 	.map-legend {
 		position: absolute;

@@ -139,7 +139,7 @@
 			marker.bindPopup(
 				`<div style="font-family:'Sora',sans-serif;padding:4px 2px;">
 					<div style="font-family:'Anton',sans-serif;font-size:15px;color:#1a1209;letter-spacing:0.03em;">${market.name}</div>
-					<div style="font-size:12px;color:#8a7d65;margin-top:3px;">${market.area}, ${market.state}</div>
+					<div style="font-size:12px;color:#8a7d65;margin-top:3px;">${[market.area, market.state].filter(Boolean).join(', ')}</div>
 					<a href="/market/${market.id}" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:700;color:#e5311d;text-decoration:none;">View details →</a>
 				</div>`
 			);

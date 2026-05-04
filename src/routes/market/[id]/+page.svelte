@@ -210,10 +210,10 @@
 	<title>{data.market.name} — Pasar Malam Finder</title>
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="{data.market.name} — Pasar Malam Finder" />
-	<meta property="og:description" content="{data.market.description ? data.market.description.slice(0, 160) : `${data.market.name} — a pasar malam in ${data.market.area}, ${data.market.state}.`}" />
+	<meta property="og:description" content="{data.market.description ? data.market.description.slice(0, 160) : `${data.market.name} — a pasar malam in ${[data.market.area, data.market.state].filter(Boolean).join(', ')}.`}" />
 	<meta name="twitter:card" content="summary" />
 	<meta name="twitter:title" content="{data.market.name} — Pasar Malam Finder" />
-	<meta name="twitter:description" content="{data.market.description ? data.market.description.slice(0, 160) : `${data.market.name} — a pasar malam in ${data.market.area}, ${data.market.state}.`}" />
+	<meta name="twitter:description" content="{data.market.description ? data.market.description.slice(0, 160) : `${data.market.name} — a pasar malam in ${[data.market.area, data.market.state].filter(Boolean).join(', ')}.`}" />
 </svelte:head>
 
 <!-- ── MARKET HEADER ─────────────────────────────────────────────── -->

@@ -51,20 +51,27 @@
 		.set(loaderEl, { display: 'none' });
 	});
 
-	// On every client-side navigation: flash the overlay in
+	// On every client-side navigation: curtain rises from bottom, then words appear
 	onNavigate(() => {
 		if (!loaderEl) return;
-		gsap.set(loaderEl, { display: 'flex', yPercent: 0 });
+		gsap.set(loaderEl, { display: 'flex', yPercent: 100 });
 		gsap.set('.loader-word', { y: 60, opacity: 0 });
 
 		return new Promise<void>((resolve) => {
-			gsap.to('.loader-word', {
-				y: 0,
-				opacity: 1,
-				stagger: 0.06,
-				duration: 0.28,
-				ease: 'power3.out',
-				onComplete: resolve
+			gsap.to(loaderEl, {
+				yPercent: 0,
+				duration: 0.55,
+				ease: 'power4.inOut',
+				onComplete: () => {
+					gsap.to('.loader-word', {
+						y: 0,
+						opacity: 1,
+						stagger: 0.06,
+						duration: 0.25,
+						ease: 'power3.out',
+						onComplete: resolve
+					});
+				}
 			});
 		});
 	});

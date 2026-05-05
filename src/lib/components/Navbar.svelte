@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { gsap } from 'gsap';
@@ -16,8 +17,19 @@
 
 	let menuOpen = $state(false);
 	let dropdownOpen = $state(false);
+	let scrolled = $state(false);
 	let menuEl: HTMLDivElement;
 	let backdropEl: HTMLDivElement;
+
+	const isHomePage = $derived(page.url.pathname === '/');
+	const isTransparent = $derived(isHomePage && !scrolled);
+
+	onMount(() => {
+		const onScroll = () => { scrolled = window.scrollY > 60; };
+		onScroll();
+		window.addEventListener('scroll', onScroll, { passive: true });
+		return () => window.removeEventListener('scroll', onScroll);
+	});
 
 	const navLinks = [
 		{ href: '/explore', label: 'Markets' },
@@ -67,7 +79,15 @@
 	}
 </script>
 
-<nav class="sticky top-0 z-50 bg-cream/95 backdrop-blur-md" style="border-bottom: 1px solid #e0d8c8;">
+<nav
+	class="fixed inset-x-0 top-0 z-50 transition-all duration-400"
+	style="
+		background: {isTransparent ? 'transparent' : 'rgba(250,245,235,0.97)'};
+		backdrop-filter: {isTransparent ? 'none' : 'blur(14px)'};
+		-webkit-backdrop-filter: {isTransparent ? 'none' : 'blur(14px)'};
+		border-bottom: 1px solid {isTransparent ? 'transparent' : '#e0d8c8'};
+	"
+>
 	<div class="max-w-[1180px] mx-auto px-8 flex items-center justify-between" style="padding-top: 22px; padding-bottom: 22px;">
 
 		<!-- Brand -->
@@ -79,7 +99,7 @@
 			>
 				<span class="font-anton text-white leading-none" style="font-size: 18px;">P</span>
 			</div>
-			<span class="font-anton text-ink" style="font-size: 22px; letter-spacing: 0.04em;">
+			<span class="font-anton transition-colors duration-400" style="font-size: 22px; letter-spacing: 0.04em; color: {isTransparent ? '#faf5eb' : '#1a1209'};">
 				PASAR<span class="text-primary">.</span>FINDER
 			</span>
 		</a>
@@ -87,12 +107,13 @@
 		<!-- Desktop center links -->
 		<div class="hidden md:flex items-center gap-7">
 			{#each navLinks as link}
+				{@const isActive = page.url.pathname === link.href || (page.url.pathname === '/explore' && link.href.startsWith('/explore'))}
 				<a
 					href={link.href}
-					class="font-sora text-ink transition-opacity"
-					style="font-size: 14px; opacity: {page.url.pathname === link.href || (page.url.pathname === '/explore' && link.href.startsWith('/explore')) ? '1' : '0.75'};"
+					class="font-sora transition-all duration-400"
+					style="font-size: 14px; color: {isTransparent ? 'rgba(250,245,235,0.75)' : '#1a1209'}; opacity: {isActive ? '1' : '0.75'};"
 					onmouseenter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
-					onmouseleave={(e) => ((e.currentTarget as HTMLElement).style.opacity = page.url.pathname === '/explore' && link.href.startsWith('/explore') ? '1' : page.url.pathname === link.href ? '1' : '0.75')}
+					onmouseleave={(e) => ((e.currentTarget as HTMLElement).style.opacity = isActive ? '1' : '0.75')}
 				>
 					{link.label}
 				</a>
@@ -105,14 +126,17 @@
 				<div class="relative">
 					<button
 						onclick={() => (dropdownOpen = !dropdownOpen)}
-						class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-soft-surface transition-colors"
+						class="flex items-center gap-2 px-3 py-2 rounded-xl transition-colors"
+						onmouseenter={(e) => ((e.currentTarget as HTMLElement).style.background = isTransparent ? 'rgba(250,245,235,0.1)' : '#f0e9d6')}
+						onmouseleave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
 					>
 						<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-sora font-semibold text-sm">
 							{(profile?.username ?? 'U')[0].toUpperCase()}
 						</div>
-						<span class="font-sora text-sm text-ink">{profile?.username ?? 'Account'}</span>
+						<span class="font-sora text-sm transition-colors duration-400" style="color: {isTransparent ? 'rgba(250,245,235,0.8)' : '#1a1209'};">{profile?.username ?? 'Account'}</span>
 						<svg
-							class="w-4 h-4 text-muted transition-transform {dropdownOpen ? 'rotate-180' : ''}"
+							class="w-4 h-4 transition-transform {dropdownOpen ? 'rotate-180' : ''}"
+							style="color: {isTransparent ? 'rgba(250,245,235,0.45)' : '#8a7d65'};"
 							viewBox="0 0 20 20"
 							fill="currentColor"
 						>
@@ -147,8 +171,13 @@
 			{:else}
 				<button
 					onclick={() => showAuthModal()}
-					class="font-sora font-medium text-white cursor-pointer transition-opacity hover:opacity-80"
-					style="background: #1a1209; padding: 9px 16px; border-radius: 8px; font-size: 13px; border: none;"
+					class="font-sora font-medium cursor-pointer transition-all duration-400 hover:opacity-85"
+					style="
+						background: {isTransparent ? 'rgba(250,245,235,0.1)' : '#1a1209'};
+						border: 1px solid {isTransparent ? 'rgba(250,245,235,0.22)' : 'transparent'};
+						color: {isTransparent ? '#faf5eb' : '#ffffff'};
+						padding: 9px 16px; border-radius: 8px; font-size: 13px;
+					"
 				>
 					Sign in
 				</button>
@@ -158,13 +187,13 @@
 		<!-- Hamburger button -->
 		<button
 			onclick={toggleMenu}
-			class="md:hidden p-2 rounded-lg hover:bg-soft-surface transition-colors"
+			class="md:hidden p-2 rounded-lg transition-colors"
 			aria-label="Menu"
 		>
 			<div class="w-5 flex flex-col gap-1.5">
-				<span class="block h-0.5 bg-ink transition-transform origin-center {menuOpen ? 'rotate-45 translate-y-2' : ''}"></span>
-				<span class="block h-0.5 bg-ink transition-opacity {menuOpen ? 'opacity-0' : ''}"></span>
-				<span class="block h-0.5 bg-ink transition-transform origin-center {menuOpen ? '-rotate-45 -translate-y-2' : ''}"></span>
+				<span class="block h-0.5 transition-all duration-400 origin-center {menuOpen ? 'rotate-45 translate-y-2' : ''}" style="background: {isTransparent ? '#faf5eb' : '#1a1209'};"></span>
+				<span class="block h-0.5 transition-all duration-400 {menuOpen ? 'opacity-0' : ''}" style="background: {isTransparent ? '#faf5eb' : '#1a1209'};"></span>
+				<span class="block h-0.5 transition-all duration-400 origin-center {menuOpen ? '-rotate-45 -translate-y-2' : ''}" style="background: {isTransparent ? '#faf5eb' : '#1a1209'};"></span>
 			</div>
 		</button>
 	</div>

@@ -313,6 +313,9 @@
 
 <div class="orange-world">
 
+<!-- ── STEPS 01–03 ─────────────────────────────────────────────────── -->
+<div class="steps-container">
+
 <!-- ── DAY FILTER ──────────────────────────────────────────────────── -->
 <section class="pg-section neo-day-section">
 	<div class="pg-wrap">
@@ -412,12 +415,12 @@
 	<div class="pg-wrap">
 		<div class="pg-head">
 			<div>
-				<div class="eyebrow">Step 03 — see them on a map</div>
-				<h2 class="pg-h2">
-					Nearby <span class="serif-accent">tonight</span>
+				<div class="eyebrow neo-eyebrow">Step 03 — see them on a map</div>
+				<h2 class="pg-h2 neo-day-title">
+					Nearby <span class="neo-day-accent">tonight</span>
 				</h2>
 			</div>
-			<div class="pg-meta">{filteredMarkets.length} markets within 8 km</div>
+			<div class="pg-meta"><b>{filteredMarkets.length} markets within 8 km</b></div>
 		</div>
 
 		<div class="css-map-box">
@@ -430,19 +433,45 @@
 	</div>
 </section>
 
+</div><!-- /.steps-container -->
+
+<div class="rest-container">
+
+<!-- ── MARQUEE ───────────────────────────────────────────────────── -->
+<div class="neo-marquee-wrap">
+	<div class="neo-marquee-track">
+		<span>PASAR MALAM PROFILE</span><span class="neo-marquee-star">★</span>
+		<span>MARKET SHOWCASE</span><span class="neo-marquee-star">◆</span>
+		<span>FEATURED TONIGHT</span><span class="neo-marquee-star">★</span>
+		<span>FIND YOUR SPOT</span><span class="neo-marquee-star">◆</span>
+		<span>PASAR MALAM PROFILE</span><span class="neo-marquee-star">★</span>
+		<span>MARKET SHOWCASE</span><span class="neo-marquee-star">◆</span>
+		<span>FEATURED TONIGHT</span><span class="neo-marquee-star">★</span>
+		<span>FIND YOUR SPOT</span><span class="neo-marquee-star">◆</span>
+		<span>PASAR MALAM PROFILE</span><span class="neo-marquee-star">★</span>
+		<span>MARKET SHOWCASE</span><span class="neo-marquee-star">◆</span>
+		<span>FEATURED TONIGHT</span><span class="neo-marquee-star">★</span>
+		<span>FIND YOUR SPOT</span><span class="neo-marquee-star">◆</span>
+		<span>PASAR MALAM PROFILE</span><span class="neo-marquee-star">★</span>
+		<span>MARKET SHOWCASE</span><span class="neo-marquee-star">◆</span>
+		<span>FEATURED TONIGHT</span><span class="neo-marquee-star">★</span>
+		<span>FIND YOUR SPOT</span><span class="neo-marquee-star">◆</span>
+	</div>
+</div>
+
 <!-- ── MARKET DETAIL ─────────────────────────────────────────────── -->
 {#if data.featuredMarket}
 	{@const fm = data.featuredMarket}
-	<section class="pg-section">
+	<section class="pg-section neo-day-section">
 		<div class="pg-wrap">
-			<div class="pg-head">
+			<div class="pg-head neo-day-head">
 				<div>
-					<div class="eyebrow">Detail view</div>
-					<h2 class="pg-h2">
-						Market <span class="serif-accent">profile</span>
+					<div class="eyebrow neo-eyebrow">Detail view</div>
+					<h2 class="pg-h2 neo-day-title">
+						Market <span class="neo-day-accent">profile</span>
 					</h2>
 				</div>
-				<div class="pg-meta">№ {data.marketNumbers?.[fm.id] ?? '001'} · Last updated 12 May</div>
+				<div class="pg-meta"><span class="neo-day-accent">№ {data.marketNumbers?.[fm.id] ?? '001'}</span> · Last updated 12 May</div>
 			</div>
 
 			<div class="detail-card">
@@ -647,6 +676,8 @@
 		<div style="font-family: 'Sora', sans-serif; font-size: 13px;" class="footer-copy">Built by &amp; for the rakyat · © 2026</div>
 	</div>
 </footer>
+
+</div><!-- /.rest-container -->
 
 </div><!-- /.orange-world -->
 
@@ -1006,6 +1037,48 @@
 	}
 
 
+	.rest-container {
+		background: #90EE90;
+	}
+
+	.neo-marquee-wrap {
+		background: #faf5eb;
+		border-top: 6px solid #1a1209;
+		border-bottom: 6px solid #1a1209;
+		overflow: hidden;
+		padding: 14px 0;
+		white-space: nowrap;
+	}
+
+	.neo-marquee-track {
+		display: inline-flex;
+		align-items: center;
+		animation: neo-marquee 18s linear infinite;
+	}
+
+	.neo-marquee-track span {
+		font-family: 'Anton', sans-serif;
+		font-size: 34px;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: #1a1209;
+		padding: 0 20px;
+	}
+
+	.neo-marquee-star {
+		color: #89CFF0 !important;
+		font-size: 42px !important;
+		padding: 0 8px !important;
+		-webkit-text-stroke: 3px #1a1209;
+		position: relative;
+		top: -3px;
+	}
+
+	@keyframes neo-marquee {
+		0%   { transform: translateX(0); }
+		100% { transform: translateX(-25%); }
+	}
+
 	/* ── Orange world — fixed overlay, same pattern as a page-transition "next page" ── */
 	.orange-world {
 		position: fixed;
@@ -1138,7 +1211,11 @@
 	.orange-world .badge-unverified { background: rgba(26,18,9,0.06); color: rgba(26,18,9,0.5); border-color: rgba(26,18,9,0.15); }
 
 	/* Map */
-	.orange-world .css-map-box { border-color: rgba(250,245,235,0.15); }
+	.orange-world .css-map-box {
+		border: 3px solid #1a1209;
+		border-radius: 6px;
+		box-shadow: 6px 6px 0 #1a1209;
+	}
 	.orange-world .map-legend {
 		background: rgba(26,18,9,0.85);
 		border-color: rgba(250,245,235,0.12);
@@ -1164,6 +1241,70 @@
 		border-color: rgba(250,245,235,0.2);
 		color: #faf5eb;
 	}
+
+	/* ── rest-container: neobrutalism detail card ── */
+	.rest-container .detail-card {
+		background: #89CFF0 !important;
+		border: 3px solid #1a1209 !important;
+		border-radius: 4px !important;
+		box-shadow: 7px 7px 0 #1a1209 !important;
+	}
+	.rest-container .detail-eyebrow {
+		background: #1a1209;
+		color: #f5c518 !important;
+		font-weight: 700;
+		padding: 5px 12px 3px !important;
+		display: inline-flex !important;
+		border: 2px solid #1a1209;
+	}
+	.rest-container .detail-eyebrow .blink-dot { flex-shrink: 0; }
+	.rest-container .detail-name { color: #faf5eb !important; }
+	.rest-container .detail-name .serif-accent { color: #FF8C00 !important; -webkit-text-stroke: 0.6px #FF8C00 !important; }
+	.rest-container .detail-wm { color: rgba(26,18,9,0.07) !important; }
+	.rest-container .chips-row .chip {
+		border: 2px solid #1a1209 !important;
+		border-radius: 3px !important;
+		color: #1a1209 !important;
+		box-shadow: 2px 2px 0 #1a1209 !important;
+		font-weight: 700 !important;
+	}
+	.rest-container .chips-row .chip:nth-child(1) { background: #FFB6C1 !important; }
+	.rest-container .chips-row .chip:nth-child(2) { background: #90EE90 !important; }
+	.rest-container .chips-row .chip:nth-child(3) { background: #f5c518 !important; }
+	.rest-container .chips-row .chip:nth-child(4) { background: #BC8FDE !important; color: #faf5eb !important; }
+	.rest-container .chips-row .chip:nth-child(5) { background: #FFB6C1 !important; }
+	.rest-container .chips-row .chip:nth-child(6) { background: #90EE90 !important; }
+	.rest-container .chips-row .chip:nth-child(7) { background: #f5c518 !important; }
+	.rest-container .btn-save {
+		background: #e5311d !important;
+		color: #faf5eb !important;
+		border: 2.5px solid #1a1209 !important;
+		border-radius: 3px !important;
+		box-shadow: 4px 4px 0 #1a1209 !important;
+		transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+	}
+	.rest-container .btn-save:hover {
+		transform: translate(-2px, -2px) !important;
+		box-shadow: 6px 6px 0 #1a1209 !important;
+	}
+	.rest-container .btn-report {
+		background: #f5c518 !important;
+		border: 2.5px solid #1a1209 !important;
+		border-radius: 3px !important;
+		color: #1a1209 !important;
+		box-shadow: 4px 4px 0 #1a1209 !important;
+		transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+		text-decoration: none !important;
+	}
+	.rest-container .btn-report:hover {
+		border-color: #1a1209 !important;
+		transform: translate(-2px, -2px) !important;
+		box-shadow: 6px 6px 0 #1a1209 !important;
+	}
+	.rest-container .pg-head .neo-day-title { color: #1a1209 !important; }
+	.rest-container .pg-head .neo-day-title .neo-day-accent { -webkit-text-stroke: 0; }
+	.rest-container .pg-meta { color: #1a1209 !important; opacity: 1; font-weight: 700; }
+	.rest-container .pg-meta .neo-day-accent { color: #90EE90 !important; -webkit-text-stroke: 0; letter-spacing: 0.08em; padding: 6px 16px !important; }
 
 	/* Reviews */
 	.orange-world .review-card {

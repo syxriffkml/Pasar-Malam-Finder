@@ -45,6 +45,11 @@
 		return n === 0 ? '#f5c518' : n === 1 ? '#e0d8c8' : '#e5311d';
 	}
 
+	const NEO_COLORS = ['#89CFF0', '#BC8FDE', '#90EE90', '#FFB6C1'];
+	function getNeoColor(i: number): string {
+		return NEO_COLORS[i % NEO_COLORS.length];
+	}
+
 	$effect(() => {
 		if (!LeafletLib || !markersLayer || !leafletMap) return;
 		const L = LeafletLib;
@@ -112,11 +117,11 @@
 			setTimeout(() => map.invalidateSize(), 100);
 		})();
 
-		let glowTween: any;
-
 		gsap.registerPlugin(ScrollTrigger);
 
-		// Hero line-reveal — unlock overflow on complete so glow can spill out
+		const orangeWorld = document.querySelector('.orange-world') as HTMLElement;
+
+		// Hero line-reveal. After all lines land, wire up the dot timeline.
 		gsap.from('.hero-line-inner', {
 			y: '115%',
 			duration: 1.15,
@@ -127,66 +132,93 @@
 				document.querySelectorAll('.hero-line-wrap').forEach((el) => {
 					(el as HTMLElement).style.overflow = 'visible';
 				});
+
+				if (!heroEl) return;
+				const dotEl = document.querySelector('.hero-dot') as HTMLElement;
+				if (!dotEl) return;
+
+				// Compute scale needed so the dot covers every viewport corner
+				const r = dotEl.getBoundingClientRect();
+				const cx = r.left + r.width / 2;
+				const cy = r.top + r.height / 2;
+				const maxDist = Math.sqrt(
+					Math.pow(Math.max(cx, window.innerWidth - cx), 2) +
+					Math.pow(Math.max(cy, window.innerHeight - cy), 2)
+				);
+				const targetScale = Math.ceil(maxDist / (r.width / 2)) + 5;
+
+				let innerAnimsDone = false;
+
+				// ── CodePen pattern ──────────────────────────────────────────
+				// Single scrubbed timeline: dot grows → orange-world snaps in →
+				// first section fades from left. Exactly like the CodePen demo.
+				const tl = gsap.timeline({
+					scrollTrigger: {
+						trigger: heroEl,
+						start: 'top top',
+						end: '+=250%',
+						pin: true,
+						scrub: 1,
+						onLeave: () => {
+							leafletMap?.invalidateSize();
+							if (!innerAnimsDone) {
+								innerAnimsDone = true;
+								gsap.utils.toArray<HTMLElement>('.orange-world .pg-section').forEach((section, i) => {
+									const inner = section.querySelector<HTMLElement>('.pg-wrap') ?? section;
+									if (i === 0) {
+										gsap.from(inner, { x: -52, opacity: 0, duration: 0.8, ease: 'power3.out' });
+									} else {
+										gsap.from(inner, {
+											x: -52, opacity: 0, duration: 0.8, ease: 'power3.out',
+											scrollTrigger: { trigger: section, scroller: orangeWorld, start: 'top 80%', once: true }
+										});
+									}
+								});
+								if (ctaSectionEl) {
+									gsap.from('.cta-text-block', {
+										x: -52, opacity: 0, duration: 0.8, ease: 'power3.out',
+										scrollTrigger: { trigger: ctaSectionEl, scroller: orangeWorld, start: 'top 82%', once: true }
+									});
+								}
+							}
+						},
+						onEnterBack: () => {
+							gsap.set(orangeWorld, { autoAlpha: 0 });
+							orangeWorld.scrollTop = 0;
+						}
+					}
+				});
+
+				tl.to(dotEl, {
+					scale: targetScale,
+					ease: 'power2.in',
+					duration: 3,
+				})
+				.to(orangeWorld, { autoAlpha: 1, duration: 0.05 });
 			}
 		});
+
 		gsap.from('.hero-top-strip', { opacity: 0, y: -16, duration: 0.6, ease: 'power2.out', delay: 0.1 });
 		gsap.from('.hero-data', { opacity: 0, x: 32, duration: 1.1, ease: 'power3.out', delay: 1.0 });
 		gsap.from('.hero-scroll', { opacity: 0, duration: 0.6, delay: 1.25 });
 
-		// Stats live in the hero now — count up on load
 		const proxy1 = { val: 0 };
 		const proxy2 = { val: 0 };
 		gsap.to(proxy1, { val: STAT_TARGETS.markets, duration: 2.2, ease: 'power2.out', delay: 1.1, onUpdate() { statMarkets = Math.round(proxy1.val); } });
 		gsap.to(proxy2, { val: STAT_TARGETS.tonight, duration: 2.2, ease: 'power2.out', delay: 1.1, onUpdate() { statTonight = Math.round(proxy2.val); } });
 
-		ScrollTrigger.create({
-			trigger: '.cards-grid',
-			start: 'top 88%',
-			once: true,
-			onEnter: () => {
-				gsap.from('.cards-grid .card-item', {
-					y: 40,
-					opacity: 0,
-					stagger: 0.08,
-					duration: 0.55,
-					ease: 'power2.out'
-				});
+		const handleOrangeWorldWheel = (e: WheelEvent) => {
+			if (orangeWorld.scrollTop <= 0 && e.deltaY < 0) {
+				e.preventDefault();
+				window.scrollBy(0, e.deltaY * 4);
 			}
-		});
-
-		// CTA wave parallax
-		if (ctaSectionEl) {
-			gsap.from('.cta-text-block', {
-				y: 50,
-				opacity: 0,
-				duration: 0.9,
-				ease: 'power3.out',
-				scrollTrigger: { trigger: ctaSectionEl, start: 'top 80%', once: true }
-			});
-			gsap.to(ctaWaveBack, {
-				y: -50,
-				scrollTrigger: {
-					trigger: ctaSectionEl,
-					start: 'top bottom',
-					end: 'bottom top',
-					scrub: 2
-				}
-			});
-			gsap.to(ctaWaveFront, {
-				y: -90,
-				scrollTrigger: {
-					trigger: ctaSectionEl,
-					start: 'top bottom',
-					end: 'bottom top',
-					scrub: 1.2
-				}
-			});
-		}
+		};
+		orangeWorld.addEventListener('wheel', handleOrangeWorldWheel, { passive: false });
 
 		return () => {
 			ScrollTrigger.getAll().forEach((t) => t.kill());
 			leafletMap?.remove();
-			glowTween?.kill();
+			orangeWorld.removeEventListener('wheel', handleOrangeWorldWheel);
 		};
 	});
 </script>
@@ -230,7 +262,7 @@
 			<div class="hero-line-wrap">
 				<div class="hero-line-inner">
 					<div class="hero-tonight-wrap">
-						<span class="hero-h-tonight">TONIGHT<span class="hero-dot">.</span></span>
+						<span class="hero-h-tonight">TONIGHT<span class="hero-dot" aria-hidden="true"></span></span>
 					</div>
 				</div>
 			</div>
@@ -275,29 +307,24 @@
 
 	</div>
 
-	<!-- Scroll hint -->
-	<div class="hero-scroll">
-		<span class="hero-scroll-text">SCROLL</span>
-		<svg class="hero-scroll-arrow" width="16" height="24" viewBox="0 0 16 24" fill="none" stroke="rgba(250,245,235,0.3)" stroke-width="2" stroke-linecap="round">
-			<line x1="8" y1="0" x2="8" y2="20"/><polyline points="2 14 8 20 14 14"/>
-		</svg>
-	</div>
+
 
 </section>
 
+<div class="orange-world">
 
 <!-- ── DAY FILTER ──────────────────────────────────────────────────── -->
-<section class="pg-section">
+<section class="pg-section neo-day-section">
 	<div class="pg-wrap">
-		<div class="pg-head">
+		<div class="pg-head neo-day-head">
 			<div>
-				<div class="eyebrow">Step 01 — pick a night</div>
-				<h2 class="pg-h2">
-					What <span class="serif-accent">day</span> are you free?
+				<div class="eyebrow neo-eyebrow">Step 01 — pick a night</div>
+				<h2 class="pg-h2 neo-day-title">
+					What <span class="neo-day-accent">day</span> are you free?
 				</h2>
 			</div>
 			<div class="pg-meta">
-				Showing markets for <b style="color: #1a1209;">{selectedDay} · {selectedDay === getTodayMalay() ? 'Tonight' : 'This week'}</b>
+				<b>Showing markets for</b> <b class="neo-tag">{selectedDay} · {selectedDay === getTodayMalay() ? 'Tonight' : 'This week'}</b>
 			</div>
 		</div>
 
@@ -321,13 +348,13 @@
 	<div class="pg-wrap">
 		<div class="pg-head">
 			<div>
-				<div class="eyebrow">Step 02 — choose your spot</div>
-				<h2 class="pg-h2">
-					Markets <span class="serif-accent">tonight</span>
+				<div class="eyebrow neo-eyebrow">Step 02 — choose your spot</div>
+				<h2 class="pg-h2 neo-day-title">
+					Markets <span class="neo-day-accent">tonight</span>
 				</h2>
 			</div>
 			<div class="pg-meta">
-				Sorted by · <b style="color: #1a1209;">Closest to you</b>
+				<b>Sorted by ·</b> <b class="neo-tag">Closest to you</b>
 			</div>
 		</div>
 
@@ -335,12 +362,13 @@
 			<div class="cards-grid">
 				{#each filteredMarkets.slice(0, 4) as market, i}
 					{@const num = data.marketNumbers?.[market.id] ?? String(i + 1).padStart(3, '0')}
-					{@const band = getCardBand(market.id)}
-					<a href="/market/{market.id}" class="card-item"
-						onmouseenter={(e) => { const el = e.currentTarget as HTMLElement; el.style.transform='translateY(-3px)'; el.style.boxShadow='0 18px 40px -22px rgba(26,18,9,0.25)'; }}
-						onmouseleave={(e) => { const el = e.currentTarget as HTMLElement; el.style.transform=''; el.style.boxShadow=''; }}
+					{@const neoColor = getNeoColor(i)}
+					<a href="/market/{market.id}" class="card-item neo-card"
+						style="--neo-bg: {neoColor};"
+						onmouseenter={(e) => { const el = e.currentTarget as HTMLElement; el.style.transform='translate(-3px,-3px)'; el.style.boxShadow='7px 7px 0 #1a1209'; }}
+						onmouseleave={(e) => { const el = e.currentTarget as HTMLElement; el.style.transform=''; el.style.boxShadow='4px 4px 0 #1a1209'; }}
 					>
-						<div style="height: 3px; background: {band};"></div>
+						<div style="height: 5px; background: #1a1209;"></div>
 						<div class="card-body">
 							<div class="card-top-row">
 								{#if isOpenNow(market.operating_days, market.start_time, market.end_time)}
@@ -356,7 +384,7 @@
 							<div class="card-area">📍 {market.area}</div>
 							<div class="card-footer">
 								<span class="card-day">
-									{market.operating_days.join(', ')} · <em style="color: #8a7d65; font-style: normal; font-weight: 400;">{formatTime(market.start_time)} – {formatTime(market.end_time)}</em>
+									{market.operating_days.join(', ')} · <em style="font-style: normal;">{formatTime(market.start_time)} – {formatTime(market.end_time)}</em>
 								</span>
 								<span class="card-rating">★ {data.ratingsMap?.[market.id]?.toFixed(1) ?? '—'}</span>
 							</div>
@@ -366,7 +394,7 @@
 			</div>
 			{#if filteredMarkets.length > 4}
 				<div style="text-align: center; margin-top: 52px; position: relative; z-index: 2;">
-					<a href="/explore?day={selectedEnglish}" class="btn-secondary" style="font-size: 14px;">
+					<a href="/explore?day={selectedEnglish}" class="btn-neo-all">
 						See all {filteredMarkets.length} markets on {selectedDay} →
 					</a>
 				</div>
@@ -616,9 +644,11 @@
 <footer class="pg-footer">
 	<div class="pg-wrap pg-footer-inner">
 		<div class="footer-logo">PASAR.FINDER</div>
-		<div style="font-family: 'Sora', sans-serif; color: #8a7d65; font-size: 13px;">Built by &amp; for the rakyat · © 2026</div>
+		<div style="font-family: 'Sora', sans-serif; font-size: 13px;" class="footer-copy">Built by &amp; for the rakyat · © 2026</div>
 	</div>
 </footer>
+
+</div><!-- /.orange-world -->
 
 <style>
 	/* ── Wrappers ── */
@@ -631,9 +661,8 @@
 	/* ── Hero ── */
 	.hero {
 		position: relative;
-		min-height: 100vh;
+		height: 100vh;
 		background: #0f0c07;
-		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 	}
@@ -768,9 +797,15 @@
 		padding-top: 4px;
 	}
 
+	/* The dot IS the expanding square — scales to fill the screen on scroll */
 	.hero-dot {
-		color: #e5311d;
-		-webkit-text-stroke: 1.5px #e5311d;
+		display: inline-block;
+		width: 25px;
+		height: 25px;
+		background: #e5311d;
+		transform-origin: center center;
+		will-change: transform;
+		margin-left: 0.12em;
 	}
 
 	/* ── Right: typographic data composition ── */
@@ -779,7 +814,7 @@
 		right: clamp(36px, 5vw, 80px);
 		top: 50%;
 		transform: translateY(-50%);
-		z-index: 3;
+		z-index: 1;
 		width: clamp(260px, 36vw, 520px);
 		/* thin spine on the left */
 		border-left: 1px solid rgba(250,245,235,0.1);
@@ -958,33 +993,6 @@
 
 	.hero-search-btn:hover { background: #c92715; transform: translateY(-1px); }
 
-	/* Scroll hint */
-	.hero-scroll {
-		position: absolute;
-		bottom: 32px;
-		left: 50%;
-		transform: translateX(-50%);
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 6px;
-		z-index: 2;
-	}
-
-	.hero-scroll-text {
-		font-family: 'Sora', sans-serif;
-		font-size: 10px;
-		letter-spacing: 0.26em;
-		color: rgba(250,245,235,0.22);
-		text-transform: uppercase;
-	}
-
-	.hero-scroll-arrow { animation: scroll-bounce 1.8s ease-in-out infinite; }
-
-	@keyframes scroll-bounce {
-		0%, 100% { transform: translateY(0); }
-		50% { transform: translateY(5px); }
-	}
 
 	/* Eyebrow labels */
 	.eyebrow {
@@ -996,6 +1004,197 @@
 		color: #8a7d65;
 		margin-bottom: 8px;
 	}
+
+
+	/* ── Orange world — fixed overlay, same pattern as a page-transition "next page" ── */
+	.orange-world {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		overflow-y: auto;
+		z-index: 46;
+		background: #e5311d;
+		visibility: hidden;
+		opacity: 0;
+		scrollbar-width: none;
+	}
+	.orange-world::-webkit-scrollbar {
+		display: none;
+	}
+
+	.orange-world .eyebrow { color: rgba(250,245,235,0.55); }
+	.orange-world .pg-h2 { color: #faf5eb; }
+	.orange-world .serif-accent { color: #f5c518; -webkit-text-stroke: 0.6px #f5c518; }
+	.orange-world .pg-meta { color: white; font-weight: 700; }
+	.orange-world .pg-meta b { color: white; }
+	.orange-world .pg-meta .neo-tag {
+		background: #1a1209;
+		color: #89CFF0 !important;
+		padding: 2px 8px;
+		display: inline-block;
+	}
+	.orange-world .pg-section { padding-top: 64px; }
+
+	/* Neobrutalism see-all button */
+	.orange-world .btn-neo-all {
+		display: inline-block;
+		background: #faf5eb;
+		color: #1a1209;
+		font-family: 'Sora', sans-serif;
+		font-size: 14px;
+		font-weight: 700;
+		padding: 14px 32px;
+		border: 2.5px solid #1a1209;
+		border-radius: 4px;
+		box-shadow: 5px 5px 0 #1a1209;
+		text-decoration: none;
+		transition: transform 0.1s ease, box-shadow 0.1s ease;
+	}
+	.orange-world .btn-neo-all:hover {
+		transform: translate(-3px, -3px);
+		box-shadow: 8px 8px 0 #1a1209;
+	}
+
+	/* Neobrutalism day section */
+	.orange-world .neo-eyebrow {
+		display: table;
+		background: #1a1209;
+		color: #faf5eb;
+		padding: 4px 12px;
+		border-radius: 0;
+		margin-bottom: 10px;
+	}
+	.orange-world .neo-day-title {
+		border-bottom: 3px solid #1a1209;
+		padding-bottom: 6px;
+		color: #faf5eb;
+	}
+	.orange-world .neo-day-accent {
+		font-family: 'Anton', sans-serif;
+		font-style: normal;
+		font-size: 1em;
+		line-height: 1;
+		background: #1a1209;
+		color: #89CFF0;
+		padding: 6px 14px;
+		display: inline-block;
+		-webkit-text-stroke: 0;
+		vertical-align: baseline;
+		position: relative;
+	}
+	.orange-world .neo-day-head {
+		border-bottom: none;
+	}
+
+	/* Day pills */
+	.orange-world .day-pill-item {
+		background: #faf5eb;
+		border: 2px solid #1a1209;
+		border-radius: 4px;
+		color: #1a1209;
+		font-weight: 700;
+		box-shadow: 3px 3px 0 #1a1209;
+		transition: transform 0.1s ease, box-shadow 0.1s ease;
+	}
+	.orange-world .day-pill-item:hover {
+		transform: translate(-2px, -2px);
+		box-shadow: 5px 5px 0 #1a1209;
+		border-color: #1a1209;
+		color: #1a1209;
+		background: #faf5eb;
+	}
+	.orange-world .day-pill-item.active {
+		background: #1a1209;
+		border-color: #faf5eb;
+		color: #faf5eb;
+		box-shadow: 3px 3px 0 #faf5eb;
+	}
+	.orange-world .day-pill-item.active:hover {
+		transform: translate(-2px, -2px);
+		box-shadow: 5px 5px 0 #faf5eb;
+	}
+
+	/* Cards — neobrutalism */
+	.orange-world .neo-card {
+		background: var(--neo-bg, #89CFF0);
+		border: 2.5px solid #1a1209;
+		border-radius: 6px;
+		box-shadow: 4px 4px 0 #1a1209;
+		transition: transform 0.12s ease, box-shadow 0.12s ease;
+	}
+	.orange-world .card-name { color: #1a1209; }
+	.orange-world .card-area { color: rgba(26,18,9,0.55); font-weight: 700; }
+	.orange-world .card-num { color: #1a1209; }
+	.orange-world .card-footer { border-top-color: rgba(26,18,9,0.15); }
+	.orange-world .card-day { color: #1a1209; font-weight: 700; }
+	.orange-world .card-day em { color: rgba(26,18,9,0.55) !important; font-weight: 700; }
+	.orange-world .card-rating { color: #1a1209; font-weight: 700; }
+
+	/* Badges */
+	.orange-world .badge-open { background: #1a1209; color: #faf5eb; border-color: #1a1209; }
+	.orange-world .badge-verified { background: rgba(26,18,9,0.12); color: #1a1209; border-color: rgba(26,18,9,0.25); }
+	.orange-world .badge-unverified { background: rgba(26,18,9,0.06); color: rgba(26,18,9,0.5); border-color: rgba(26,18,9,0.15); }
+
+	/* Map */
+	.orange-world .css-map-box { border-color: rgba(250,245,235,0.15); }
+	.orange-world .map-legend {
+		background: rgba(26,18,9,0.85);
+		border-color: rgba(250,245,235,0.12);
+		color: #faf5eb;
+	}
+
+	/* Detail card */
+	.orange-world .detail-card {
+		background: rgba(0,0,0,0.18);
+		border-color: rgba(250,245,235,0.14);
+	}
+	.orange-world .detail-eyebrow { color: #f5c518; }
+	.orange-world .detail-name { color: #faf5eb; }
+	.orange-world .detail-wm { color: rgba(250,245,235,0.06); }
+	.orange-world .chip {
+		background: rgba(250,245,235,0.1);
+		border-color: rgba(250,245,235,0.2);
+		color: #faf5eb;
+	}
+	.orange-world .btn-save { background: #1a1209; color: #faf5eb; }
+	.orange-world .btn-report {
+		background: rgba(250,245,235,0.08);
+		border-color: rgba(250,245,235,0.2);
+		color: #faf5eb;
+	}
+
+	/* Reviews */
+	.orange-world .review-card {
+		background: rgba(250,245,235,0.07);
+		border-color: rgba(250,245,235,0.12);
+	}
+	.orange-world .avatar {
+		background: rgba(0,0,0,0.2);
+		color: #f5c518;
+		border-color: rgba(250,245,235,0.18);
+	}
+	.orange-world .review-name { color: #faf5eb; }
+	.orange-world .review-meta { color: rgba(250,245,235,0.45); }
+	.orange-world .review-stars { color: #f5c518; }
+	.orange-world .review-body { color: rgba(250,245,235,0.62); }
+	.orange-world .review-body b { color: #faf5eb !important; }
+
+	/* Empty state */
+	.orange-world .empty-state {
+		background: rgba(250,245,235,0.07);
+		border-color: rgba(250,245,235,0.12);
+	}
+
+	/* CTA: keep its own dark navy — just fix the wave fill */
+	.orange-world .cta-section { background: #071a2e; }
+	.orange-world .cta-top-wave path { fill: #e5311d; }
+
+	/* Footer */
+	.orange-world .pg-footer { border-top-color: rgba(250,245,235,0.15); }
+	.orange-world .footer-logo { color: #faf5eb; }
+	.orange-world .footer-copy { color: rgba(250,245,235,0.45) !important; }
 
 	/* ── Stats strip ── */
 	.stats-strip {
@@ -1353,7 +1552,6 @@
 		.hero-h-xl { font-size: clamp(64px, 18vw, 110px); }
 		.hero-h-tonight { font-size: clamp(24px, 9vw, 50px); }
 		.hero-data { display: none; }
-		.hero-scroll { bottom: 20px; }
 
 		/* Sections */
 		.pg-section { padding: 40px 0 4px; }

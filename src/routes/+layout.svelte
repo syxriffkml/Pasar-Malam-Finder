@@ -29,8 +29,6 @@
 	});
 </script>
 
-<Navbar user={data.user} profile={data.profile} />
-
 <main>
 	{@render children()}
 </main>
